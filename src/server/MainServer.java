@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import model.Group;
+import model.User;
 
 /**
  *
@@ -19,19 +22,24 @@ import java.util.logging.Logger;
 public class MainServer extends Thread {
 
     private final ServerSocket serverSocket;
+    private final List<Group> groups;
+    private final List<User> users;
 
     public MainServer(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
+        this.groups = new ArrayList<Group>();
+        this.users = new ArrayList<User>();
     }
 
     @Override
     public void start() {
         System.out.println("SERVER IS RUNNING...");
-        ArrayList outList = new ArrayList();
+//        ArrayList outList = new ArrayList();
         SynchronizedArrayList messages = new SynchronizedArrayList();
+        users.add(new User("alfredo", "quim"));
         try {
             while (true) {
-                new WorkerThreadChat(serverSocket.accept(), outList, messages).start();
+                new WorkerThreadChat(serverSocket.accept(), this.groups, this.users, messages).start();
             }
         } catch (IOException ex) {
             Logger.getLogger(MainServer.class.getName()).log(Level.SEVERE, null, ex);

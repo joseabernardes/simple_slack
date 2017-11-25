@@ -5,7 +5,8 @@
  */
 package model;
 
-import encrypt.BCrypt;
+import java.net.Socket;
+import libs.encrypt.BCrypt;
 
 /**
  *
@@ -13,16 +14,25 @@ import encrypt.BCrypt;
  */
 public class User {
 
-    public static int ID;
+    public static int ID = 0;
     private int id;
-    private String name;
     private String username;
     private String password;
+    private Socket socket;
 
-    public User(String name, String username, String password) {
-        this.name = name;
-        this.username = username;        
+    public User(String username, String password) {
+        this.id = ++ID;
+        this.username = username;
         this.password = BCrypt.hashpw(password, BCrypt.gensalt());
+        this.socket = null;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 
     public int getId() {
@@ -31,14 +41,6 @@ public class User {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getUsername() {
@@ -50,21 +52,11 @@ public class User {
     }
 
     public boolean checkPassword(String password) {
-        if(BCrypt.checkpw(password, this.password)){
-            return true;
-        }
-        return false;
+        return BCrypt.checkpw(password, this.password);
     }
 
     public void setPassword(String password) {
-        this.password = BCrypt.hashpw(password,BCrypt.gensalt());
+        this.password = BCrypt.hashpw(password, BCrypt.gensalt());
     }
-    
-    public static void main(String[] args) {
-        User user = new User("nome","usernome","password");
-        System.out.println(user.checkPassword("gay"));
-        
-    }
-    
-    
+
 }

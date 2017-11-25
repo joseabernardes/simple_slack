@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Group {
 
-    private int port;
+    private int port;//2222
     private String name;
     private List<User> users;
 
@@ -48,10 +48,23 @@ public class Group {
         this.users = users;
     }
 
-    public void addUser(User user) {
+    public boolean addUser(User user) {
+        return this.users.add(user);
+    }
 
-        this.users.add(user);
+    /**
+     *
+     * @param id id do User
+     * @return User ou null caso não exista
+     */
+    public User getUser(int id) {
 
+        for (User user : users) {
+            if (user.getId() == id) {
+                return user;
+            }
+        }
+        return null;
     }
 
 }
