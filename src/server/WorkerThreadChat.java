@@ -38,6 +38,15 @@ public class WorkerThreadChat extends Thread {
             while ((inputLine = in.readLine()) != null) {
 
                 if (inputLine.startsWith("groupadd ")) {
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     inputLine = inputLine.replaceFirst("groupadd ", "");
                     //create group
                     String outString = "Adicionar grupo " + inputLine;
