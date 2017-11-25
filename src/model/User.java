@@ -5,6 +5,8 @@
  */
 package model;
 
+import encrypt.BCrypt;
+
 /**
  *
  * @author José Bernardes
@@ -19,8 +21,8 @@ public class User {
 
     public User(String name, String username, String password) {
         this.name = name;
-        this.username = username;
-        this.password = password;
+        this.username = username;        
+        this.password = BCrypt.hashpw(password, BCrypt.gensalt());
     }
 
     public int getId() {
@@ -47,15 +49,22 @@ public class User {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
+    public boolean checkPassword(String password) {
+        if(BCrypt.checkpw(password, this.password)){
+            return true;
+        }
+        return false;
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.password = BCrypt.hashpw(password,BCrypt.gensalt());
+    }
+    
+    public static void main(String[] args) {
+        User user = new User("nome","usernome","password");
+        System.out.println(user.checkPassword("gay"));
+        
     }
     
     
-    
-
 }
