@@ -5,11 +5,14 @@
  */
 package server;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Group;
@@ -18,28 +21,67 @@ import model.User;
 /**
  *
  * @author José Bernardes
+ *
  */
 public class MainServer extends Thread {
 
     private final ServerSocket serverSocket;
-    private final List<Group> groups;
-    private final List<User> users;
+    private List<Group> groups;
+    private List<User> users;
+    private final Semaphore userSemaphore;
+    private final Semaphore groupSemaphore;
 
     public MainServer(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
         this.groups = new ArrayList<Group>();
         this.users = new ArrayList<User>();
+        this.userSemaphore = new Semaphore(1);
+        this.groupSemaphore = new Semaphore(1);
+    }
+
+    private void readUsers() {
+        try {
+            userSemaphore.acquire();
+            ObjectInputStream in;
+            File file = new File("src/users.txt");
+            in = new ObjectInputStream(new FileInputStream(file));
+            users = (List<User>) in.readObject();
+        } catch (ClassNotFoundException | IOException ex) {
+            users = new ArrayList<User>();
+            users.add(new User("alfredo", "quim"));
+            users.add(new User("joel", "joel"));
+        } catch (InterruptedException ex) {
+            users = new ArrayList<User>();
+            Logger.getLogger(MainServer.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            userSemaphore.release();
+        }
+    }
+
+    private void readGroups() {
+        try {
+            groupSemaphore.acquire();
+            ObjectInputStream in;
+            File file = new File("src/groups.txt");
+            in = new ObjectInputStream(new FileInputStream(file));
+            groups = (List<Group>) in.readObject();
+        } catch (ClassNotFoundException | IOException ex) {
+            groups = new ArrayList<Group>();
+        } catch (InterruptedException ex) {
+            groups = new ArrayList<Group>();
+            Logger.getLogger(MainServer.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            groupSemaphore.release();
+        }
     }
 
     @Override
     public void start() {
         System.out.println("SERVER IS RUNNING...");
-//        ArrayList outList = new ArrayList();
-        SynchronizedArrayList messages = new SynchronizedArrayList();
-        users.add(new User("alfredo", "quim"));
+        readUsers();
         try {
             while (true) {
-                new WorkerThreadChat(serverSocket.accept(), this.groups, this.users, messages).start();
+                new WorkerThreadChat(serverSocket.accept(), this.groups, this.users, userSemaphore, groupSemaphore).start();
             }
         } catch (IOException ex) {
             Logger.getLogger(MainServer.class.getName()).log(Level.SEVERE, null, ex);
@@ -55,9 +97,7 @@ public class MainServer extends Thread {
             new MainServer(serverSocket).start();
         } catch (IOException e) {
             System.err.println("Could not listen on port: " + port + ".");
-            System.exit(-1);
+//            System.exit(-1);
         }
-
     }
-
 }

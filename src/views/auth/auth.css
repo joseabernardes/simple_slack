@@ -1,0 +1,53 @@
+/*
+ * Empty Stylesheet file.
+ */
+
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 28/nov/2017, 21:34:30
+    Author     : José Bernardes
+*/
+
+/*.tab-pane *.tab-header-area *.tab-header-background {
+    -fx-background-color:transparent;
+    -fx-background-color: #4a3148;
+}
+
+.tab-inside{
+    -fx-background-color:white;
+       -fx-background-color: #4a3148;
+}
+
+.tabs{
+    -fx-background-color:transparent;
+    -fx-background-color: red  or transparent or other preferred color ,-fx-box-border,-fx-control-inner-background;
+    -fx-background-insets: -1.4, 0, 1;
+    -fx-background-radius: 1.4, 0, 0;
+        ....
+    -fx-padding: 1;
+}
+
+.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+    -fx-border-color: transparent;
+}*/
+
+*.tab-header-area *.tab-header-background {
+    -fx-background-color: #3b434b;
+}
+.tabs{
+    -fx-background-color: #39424bbd;
+}
+.text-field{
+    -fx-text-fill: white; /*Yellow - input color*/
+    -fx-prompt-text-fill: #ffffffb3; /*Yellow - floating label*/
+    /*-fx-highlight-fill: #4eb769; Green*/
+}
+
+.button{
+    -fx-background-color: #39424bbd;
+}
+

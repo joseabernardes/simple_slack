@@ -17,6 +17,35 @@ public class ClientSenderTCP extends Thread {
         this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
+    private void sendGroupUDP(String input) {
+        try {
+            MulticastSocket socket;
+
+            socket = new MulticastSocket(4445);
+
+            InetAddress address = InetAddress.getByName("230.0.0.1");
+            socket.joinGroup(address);
+            DatagramPacket packet;
+
+            // get a few quotes
+            for (int i = 0; i < 5; i++) {
+
+                byte[] buf = new byte[256];
+                packet = new DatagramPacket(buf, buf.length);
+                socket.receive(packet);
+
+                String received = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("Quote of the Moment: " + received);
+            }
+
+            socket.leaveGroup(address);
+            socket.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ClientSenderTCP.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
     @Override
     public void start() {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
@@ -24,7 +53,13 @@ public class ClientSenderTCP extends Thread {
 
         try {
             while ((userInput = stdIn.readLine()) != null) {
+
                 out.println(userInput);
+
+//                if (userInput.equals("Bye")) {
+//                    break;
+//                } else {
+//                }
             }
             out.close();
             in.close();
@@ -45,10 +80,10 @@ public class ClientSenderTCP extends Thread {
             new ClientSenderTCP(clientSocket).start();
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host:" + host + " .");
-            System.exit(1);
+//            System.exit(1);
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to:" + host + " .");
-            System.exit(1);
+//            System.exit(1);
         }
 
     }

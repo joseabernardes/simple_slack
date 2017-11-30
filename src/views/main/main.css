@@ -1,0 +1,100 @@
+/*
+ * Empty Stylesheet file.
+ */
+
+.mainFxmlClass {
+    -fx-background-color:white;
+}
+
+.left-list:focused {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color; 
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 5, 4, 3;
+}
+
+
+.jfx-list-cell:selected{
+    -fx-background-color: #4c9689;
+
+}
+
+.lbl-cell{
+    -fx-text-fill: #b8b0b7;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px ;
+}
+
+/*.list-cell:filled:selected:focused, .list-cell:filled:selected {
+    -fx-background-color: linear-gradient(#328BDB 0%, #207BCF 25%, #1973C9 75%, #0A65BF 100%);
+    -fx-text-fill: white;
+}
+
+.list-cell:even {  <=== changed to even 
+    -fx-background-color: white;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #0093ff;
+    -fx-text-fill: white;
+}*/
+
+.jfx-list-cell{
+    -fx-background-insets: 0.0;
+    -fx-background-color: transparent;
+}
+
+.jfx-list-cell .jfx-rippler{
+    -jfx-rippler-fill: #4d394b;
+    /*-jfx-rippler-fill:BLUE;*/
+}
+
+
+
+.jfx-list-cell:hover{
+    -fx-background-color: #4c9689;
+
+}
+
+
+.fx-list-view {
+    -fx-background-insets: 0;
+    -fx-pref-with:150;
+}
+
+
+
+/*Scroll*/
+
+JFXListView .scroll-bar:horizontal .track, JFXListView .scroll-bar:vertical .track{
+    /*    -fx-background-color:transparent;
+        -fx-border-color:transparent;*/
+    -fx-background-color:#4d394b;
+    -fx-border-color:#4d394b;
+    -fx-background-radius: 0em;
+    -fx-border-radius:2em;
+}
+
+JFXListView .scroll-bar:horizontal .increment-button ,JFXListView .scroll-bar:horizontal .decrement-button {
+    -fx-background-color:transparent;
+    -fx-background-radius: 0em;
+    -fx-padding:0 0 10 0;
+}
+
+/*#4d394b*/
+
+JFXListView .scroll-bar:vertical .increment-button ,JFXListView .scroll-bar:vertical .decrement-button {
+    -fx-background-color:transparent;
+    -fx-background-radius: 0em;
+    -fx-padding:0 10 0 0;
+}
+JFXListView  .scroll-bar .increment-arrow,JFXListView  .scroll-bar .decrement-arrow{
+    -fx-shape:" ";  
+    -fx-padding:0;
+}
+
+JFXListView .scroll-bar:horizontal .thumb,JFXListView .scroll-bar:vertical .thumb {
+    -fx-background-color:derive(black,90%);
+
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}

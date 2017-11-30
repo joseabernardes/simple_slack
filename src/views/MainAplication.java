@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Views;
+package views;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -53,7 +53,7 @@ public class MainAplication extends Application implements EventHandler<ActionEv
         label.setGraphic(iv);
 
         //String str = "Welcome To " + iv + "imple" + iv + "lack";
-        
+        //
         
         
         label.setFont(new Font("Arial", 30));
@@ -120,6 +120,7 @@ public class MainAplication extends Application implements EventHandler<ActionEv
         bp.setTop(label);
         bp.setCenter(tp);
         scene = new Scene(bp, 700, 500);
+        scene.getStylesheets().add(MainAplication.class.getResource("style.css").toExternalForm());
 
         stage.setScene(scene);
         stage.show();

@@ -19,11 +19,13 @@ public class GetPort {
     // 2, 3 , 4 ,1 ,5
     public static int getFreeAvaliablePort(List<Group> groups) {
         int port = AvailablePortFinder.getNextAvailable(); //1
-        boolean find = false;
-        while (!find) {
+        boolean find = true;
+        while (find) {
+            find = false;
             Iterator<Group> iterator = groups.iterator();
             while (iterator.hasNext() && !find) {
-                if (iterator.next().getPort() == port) {
+                Group g = iterator.next();
+                if (g.getPort() == port || g.getServerPort() == port) {
                     find = true;
                 }
             }
