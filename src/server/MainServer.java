@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
@@ -33,8 +34,8 @@ public class MainServer extends Thread {
 
     public MainServer(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
-        this.groups = new ArrayList<Group>();
-        this.users = new ArrayList<User>();
+        this.groups = Collections.synchronizedList(new ArrayList<Group>());
+        this.users = Collections.synchronizedList(new ArrayList<User>());
         this.userSemaphore = new Semaphore(1);
         this.groupSemaphore = new Semaphore(1);
     }
@@ -47,11 +48,11 @@ public class MainServer extends Thread {
             in = new ObjectInputStream(new FileInputStream(file));
             users = (List<User>) in.readObject();
         } catch (ClassNotFoundException | IOException ex) {
-            users = new ArrayList<User>();
+            users = Collections.synchronizedList(new ArrayList<User>());
             users.add(new User("alfredo", "quim"));
             users.add(new User("joel", "joel"));
         } catch (InterruptedException ex) {
-            users = new ArrayList<User>();
+            users = Collections.synchronizedList(new ArrayList<User>());
             Logger.getLogger(MainServer.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             userSemaphore.release();
@@ -66,9 +67,9 @@ public class MainServer extends Thread {
             in = new ObjectInputStream(new FileInputStream(file));
             groups = (List<Group>) in.readObject();
         } catch (ClassNotFoundException | IOException ex) {
-            groups = new ArrayList<Group>();
+            groups = Collections.synchronizedList(new ArrayList<Group>());
         } catch (InterruptedException ex) {
-            groups = new ArrayList<Group>();
+            groups = Collections.synchronizedList(new ArrayList<Group>());
             Logger.getLogger(MainServer.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             groupSemaphore.release();

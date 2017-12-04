@@ -5,6 +5,7 @@
  */
 package views;
 
+import com.jfoenix.controls.JFXDecorator;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -20,11 +21,19 @@ public class SimpleSlack extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+
 //        Parent root = FXMLLoader.load(getClass().getResource("auth/Auth.fxml"));
         Parent root = FXMLLoader.load(getClass().getResource("main/Main.fxml"));
         stage.setTitle("Simple Slack");
         stage.getIcons().add(new Image("/views/images/Slack_Square.png"));
-        Scene scene = new Scene(root);
+//        Scene scene = new Scene(root);
+
+        JFXDecorator decorator = new JFXDecorator(stage, root);
+        decorator.setCustomMaximize(true);
+
+        Scene scene = new Scene(decorator, 1000, 640);
+        String uri = getClass().getResource("main/main.css").toExternalForm();
+        scene.getStylesheets().add(uri);
         stage.setResizable(false);
         stage.setScene(scene);
         stage.show();

@@ -7,7 +7,9 @@ package model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import org.json.simple.JSONObject;
 
 public class Group implements Serializable {
 
@@ -15,7 +17,7 @@ public class Group implements Serializable {
     private int serverPort;
     private String name;
     private String address;
-    private final List<String> messages;
+    private final List<Message> messages;
     private final List<User> users;
 
     public Group(int port, String name, String address) {
@@ -23,8 +25,8 @@ public class Group implements Serializable {
         this.name = name;
         this.address = address;
         serverPort = -1;
-        this.messages = new ArrayList<String>();
-        this.users = new ArrayList<User>();
+        this.messages = Collections.synchronizedList(new ArrayList<Message>());
+        this.users = Collections.synchronizedList(new ArrayList<User>());
     }
 
     public List<User> getUsers() {
@@ -64,11 +66,11 @@ public class Group implements Serializable {
         this.serverPort = serverPort;
     }
 
-    public boolean addMessage(String message) {
+    public boolean addMessage(Message message) {
         return messages.add(message);
     }
 
-    public List<String> getMessages() {
+    public List<Message> getMessages() {
         return this.messages;
     }
 
@@ -82,6 +84,14 @@ public class Group implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        JSONObject obj = new JSONObject();
+        obj.put("address", address);
+        obj.put("port", port);
+        return obj.toJSONString();
     }
 
 }

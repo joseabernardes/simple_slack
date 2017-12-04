@@ -9,6 +9,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /*
  *
@@ -29,20 +34,30 @@ public class ReceiverThread extends Thread {
     public void run() {
         try {
             String inputLine;
+            JSONObject response;
             while ((inputLine = in.readLine()) != null) {
-                if (inputLine.startsWith("joinedgroup")) {
+                response = makeJsonResponse(inputLine);
+
+                if (response.get("command").equals("joinedgroup")) {
                     String[] input = inputLine.split(" ");
-                    if (input.length == 3) {
-                        new MulticastClientThread(input[2], Integer.valueOf(input[1]), username).start();
+                    JSONObject data = makeJsonResponse(response.get("data").toString());
+                    if (data.size() == 2) {
+                        new MulticastClientThread(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), username).start();
                     }
-                } else if (inputLine.startsWith("loginsuccess")) {
-                    String[] input = inputLine.split(" ");
+
+                } else if (response.get("command").equals("listgroupmsgs")) {
+                    String[] input = inputLine.split(" ", 3);
                     if (input.length == 2) {
                         username = input[1];
                     }
+
+                } else if (response.get("command").equals("loginsuccess")) {
+                    if (response.size() == 2) {
+                        username = response.get("data").toString();
+                    }
                 }
 
-                System.out.println(inputLine);
+                System.out.println(response);
             }
         } catch (IOException ex) {
 //            Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -51,4 +66,14 @@ public class ReceiverThread extends Thread {
         }
     }
 
+    private JSONObject makeJsonResponse(String input) {
+        JSONParser parser = new JSONParser();
+        JSONObject object = null;
+        try {
+            object = (JSONObject) parser.parse(input);
+        } catch (ParseException ex) {
+            Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return object;
+    }
 }

@@ -7,6 +7,9 @@ import java.net.MulticastSocket;
 import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class MulticastClientThread extends Thread {
 
@@ -30,6 +33,7 @@ public class MulticastClientThread extends Thread {
             MulticastSocket socket = new MulticastSocket(port);
             InetAddress address = InetAddress.getByName(this.address);
             socket.joinGroup(address);
+            JSONObject response;
             while (receive) {
                 try {
                     //receive
@@ -37,8 +41,11 @@ public class MulticastClientThread extends Thread {
                     DatagramPacket packet = new DatagramPacket(buf, buf.length);
                     socket.receive(packet);
                     String received = new String(packet.getData(), 0, packet.getLength());
-                    if (received.startsWith(username + " leavegroup")) {
-                        receive = false;
+                    response = makeJsonResponse(received);
+                    if (response.get("command").equals("leave")) {
+                        if (response.get("data").equals(username)) {
+                            receive = false;
+                        }
                     }
                     System.out.println(received);
                 } catch (IOException ex) {
@@ -51,5 +58,16 @@ public class MulticastClientThread extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(MulticastClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private JSONObject makeJsonResponse(String input) {
+        JSONParser parser = new JSONParser();
+        JSONObject object = null;
+        try {
+            object = (JSONObject) parser.parse(input);
+        } catch (ParseException ex) {
+            Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return object;
     }
 }

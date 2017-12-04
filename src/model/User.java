@@ -8,6 +8,7 @@ package model;
 import java.io.Serializable;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import libs.encrypt.BCrypt;
 
@@ -17,19 +18,18 @@ import libs.encrypt.BCrypt;
  */
 public class User implements Serializable {
 
-    public static int ID = 0;
-    private int id;
     private String username;
     private String password;
     private Socket socket;
     private final List<Group> groups;
+    private final List<PrivateChat> privateChat;
 
     public User(String username, String password) {
-        this.id = ++ID;
         this.username = username;
         this.password = BCrypt.hashpw(password, BCrypt.gensalt());
         this.socket = null;
-        groups = new ArrayList<Group>();
+        this.groups = Collections.synchronizedList(new ArrayList<Group>());
+        this.privateChat = Collections.synchronizedList(new ArrayList<PrivateChat>());
     }
 
     public Socket getSocket() {
@@ -38,14 +38,6 @@ public class User implements Serializable {
 
     public void setSocket(Socket socket) {
         this.socket = socket;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getUsername() {
@@ -74,6 +66,39 @@ public class User implements Serializable {
 
     public List<Group> getGroups() {
         return this.groups;
+    }
+
+    /**
+     *
+     * @param user
+     * @return NULL IF NOT EXISTS
+     */
+    public List<Message> getMessages(User user) {
+        synchronized (privateChat) {
+            for (PrivateChat privateChat1 : privateChat) {
+                if (privateChat1.getUser().equals(user)) {
+                    return privateChat1.getMessages();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param user
+     * @param message
+     * @return FALSE IF NOT ADD
+     */
+    public boolean addMessage(User user, Message message) {
+        synchronized (privateChat) {
+            for (PrivateChat privateChat1 : privateChat) {
+                if (privateChat1.getUser().equals(user)) {
+                    return privateChat1.addMessage(message);
+                }
+            }
+        }
+        return false;
     }
 
 }

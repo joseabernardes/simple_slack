@@ -53,8 +53,43 @@ public class ClientSenderTCP extends Thread {
 
         try {
             while ((userInput = stdIn.readLine()) != null) {
+                if (userInput.startsWith("sendprivatefile")) {
 
-                out.println(userInput);
+//                    String[] split = userInput.split(" ");
+//                    String path = "C:\\NetworkCfg.xml";
+                    String path = "C:\\msdia80.dll";
+
+                    //caminho
+                    File file = new File(path);
+                    System.out.println(file.exists());
+                    FileInputStream fis = new FileInputStream(file);
+                    BufferedInputStream bis = new BufferedInputStream(fis);
+                    OutputStream os = clientSocket.getOutputStream();
+                    byte[] contents;
+                    long fileLength = file.length();
+                    long current = 0;
+                    long start = System.nanoTime();
+                    System.out.println("Sending file...");
+                    while (current != fileLength) {
+                        int size = 10000;
+                        if (fileLength - current >= size) {
+                            current += size;
+                        } else {
+                            size = (int) (fileLength - current);
+                            current = fileLength;
+                        }
+                        contents = new byte[size];
+                        bis.read(contents, 0, size);
+                        os.write(contents);
+                    }
+
+                    os.flush();
+                    //File transfer done. Close the socket connection!
+                    System.out.println("File sent succesfully!");
+
+                } else {
+                    out.println(userInput);
+                }
 
 //                if (userInput.equals("Bye")) {
 //                    break;
