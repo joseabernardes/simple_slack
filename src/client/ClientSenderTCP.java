@@ -17,35 +17,6 @@ public class ClientSenderTCP extends Thread {
         this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
-    private void sendGroupUDP(String input) {
-        try {
-            MulticastSocket socket;
-
-            socket = new MulticastSocket(4445);
-
-            InetAddress address = InetAddress.getByName("230.0.0.1");
-            socket.joinGroup(address);
-            DatagramPacket packet;
-
-            // get a few quotes
-            for (int i = 0; i < 5; i++) {
-
-                byte[] buf = new byte[256];
-                packet = new DatagramPacket(buf, buf.length);
-                socket.receive(packet);
-
-                String received = new String(packet.getData(), 0, packet.getLength());
-                System.out.println("Quote of the Moment: " + received);
-            }
-
-            socket.leaveGroup(address);
-            socket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(ClientSenderTCP.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
     @Override
     public void start() {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
@@ -54,47 +25,31 @@ public class ClientSenderTCP extends Thread {
         try {
             while ((userInput = stdIn.readLine()) != null) {
                 if (userInput.startsWith("sendprivatefile")) {
-
-//                    String[] split = userInput.split(" ");
-//                    String path = "C:\\NetworkCfg.xml";
-                    String path = "C:\\msdia80.dll";
-
-                    //caminho
-                    File file = new File(path);
-                    System.out.println(file.exists());
-                    FileInputStream fis = new FileInputStream(file);
-                    BufferedInputStream bis = new BufferedInputStream(fis);
-                    OutputStream os = clientSocket.getOutputStream();
-                    byte[] contents;
-                    long fileLength = file.length();
-                    long current = 0;
-                    long start = System.nanoTime();
-                    System.out.println("Sending file...");
-                    while (current != fileLength) {
-                        int size = 10000;
-                        if (fileLength - current >= size) {
-                            current += size;
-                        } else {
-                            size = (int) (fileLength - current);
-                            current = fileLength;
+                    String[] split = userInput.split(" ");
+                    if (split.length == 3) {
+                        String user = split[1];
+                        String filePath = split[2];
+                        File file = new File(filePath);
+                        if (file.exists()) {
+                            int size = (int) file.length();
+                            out.println("sendprivatefile" + " " + user + " " + file.getName() + " " + size + " " + file.getAbsolutePath());
                         }
-                        contents = new byte[size];
-                        bis.read(contents, 0, size);
-                        os.write(contents);
                     }
-
-                    os.flush();
-                    //File transfer done. Close the socket connection!
-                    System.out.println("File sent succesfully!");
+                } else if (userInput.startsWith("sendgroupfile")) {
+                    String[] split = userInput.split(" ");
+                    if (split.length == 3) {
+                        String group = split[1];
+                        String filePath = split[2];
+                        File file = new File(filePath);
+                        if (file.exists()) {
+                            int size = (int) file.length();
+                            out.println("sendgroupfile" + " " + group + " " + file.getName() + " " + size + " " + file.getAbsolutePath());
+                        }
+                    }
 
                 } else {
                     out.println(userInput);
                 }
-
-//                if (userInput.equals("Bye")) {
-//                    break;
-//                } else {
-//                }
             }
             out.close();
             in.close();

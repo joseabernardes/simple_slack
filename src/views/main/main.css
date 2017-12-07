@@ -125,11 +125,47 @@ JFXListView .scroll-bar:horizontal .thumb,JFXListView .scroll-bar:vertical .thum
 }
 
 .add_private{
-    -fx-image: url(../images/ic/ic_add_circle_outline_white.png);
+    /*-fx-image: url(../images/ic/ic_add_circle_outline_white.png);*/
+    -fx-image: url(../images/ic/ic_chat_white.png);
 }
 
 .add_private:hover{
-    -fx-image: url(../images/ic/ic_add_circle.png);
+    /*-fx-image: url(../images/ic/ic_add_circle.png);*/
+
+    -fx-image: url(../images/ic/ic_chat_bubble_white.png);
+}
+
+.join_group{
+    /*-fx-image: url(../images/ic/ic_add_circle_outline_white.png);*/
+    -fx-image: url(../images/ic/ic_chat_white.png);
+}
+
+.join_group:hover{
+    /*-fx-image: url(../images/ic/ic_add_circle.png);*/
+
+    -fx-image: url(../images/ic/ic_chat_bubble_white.png);
+}
+
+.file_empty{
+    -fx-image: url(../images/ic/ic_attach_file.png);
+
+}
+.file_not_empty{
+    -fx-image: url(../images/ic/ic_attach_file_red.png);
+
+}
+
+
+/*  SNACKBAR  */
+
+.jfx-snackbar-content{
+    /*-fx-backgroud: #212121;*/
+    -fx-background-color: #212121d6;
+}/*
+
+*/
+.jfx-snackbar-toast{
+    -fx-text-fill:white;
 }
 
 

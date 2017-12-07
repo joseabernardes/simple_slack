@@ -9,6 +9,7 @@ package server;
  *
  * @author José Bernardes
  */
+import client.ReceiveFileClient;
 import java.io.*;
 import java.net.*;
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import model.Message;
 import model.User;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import server.files.WriteGroups;
 import server.files.WriteUsers;
 import server.utils.GetPort;
 
@@ -83,32 +85,31 @@ public class WorkerThreadChat extends Thread {
                     String[] input = inputLine.split(" ");
                     if (input.length == 4) {
                         boolean exists = false;
-                        synchronized (users) {
-                            for (User user : users) {
-                                if (user.getUsername().equals(input[1])) {
-                                    exists = true;
-//                                break;
+                        if (input[1].matches("^[a-zA-Z0-9]{1,20}$") && input[2].matches("^[a-zA-Z0-9]{1,20}$")) {
+                            synchronized (users) {
+                                for (User user : users) {
+                                    if (user.getUsername().equals(input[1])) {
+                                        exists = true;
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        if (!exists) {
-                            if (input[2].equals(input[3])) {
-                                users.add(new User(input[1], input[2]));
-                                new WriteUsers(userSemaphore, users).start();
-                                out.println(makeJsonResponse("registsuccessful", input[1]).toJSONString());
-
+                            if (!exists) {
+                                if (input[2].equals(input[3])) {
+                                    users.add(new User(input[1], input[2]));
+                                    new WriteUsers(userSemaphore, users).start();
+                                    out.println(makeJsonResponse("registsuccessful", input[1]).toJSONString());
+                                } else {
+                                    out.println(makeJsonResponse("error", "password_match").toJSONString());
+                                }
                             } else {
-                                out.println(makeJsonResponse("error", "password_match").toJSONString());
-
+                                out.println(makeJsonResponse("error", "user_already_exists").toJSONString());
                             }
-
                         } else {
-                            out.println(makeJsonResponse("error", "user_already_exists").toJSONString());
-
+                            out.println(makeJsonResponse("error", "regex_error").toJSONString());
                         }
                     } else {
                         out.println(makeJsonResponse("error", "command").toJSONString());
-
                     }
 
                 } else if (inputLine.equals("Bye")) {
@@ -122,14 +123,14 @@ public class WorkerThreadChat extends Thread {
             if (!bye) {
                 while ((inputLine = in.readLine()) != null) { //while principal
                     boolean leave = false;
-                    JSONObject response = new JSONObject();
+                    JSONObject response;
                     if (inputLine.startsWith("sendprivatemsg")) {
                         String[] input = inputLine.split(" ", 3);
                         if (input.length == 3) {
                             User receiver = null;
                             synchronized (users) {
                                 for (User user : users) {
-                                    if (user.getUsername().equals(input[1])) {
+                                    if (user.getId() == Integer.valueOf(input[1])) {
                                         receiver = user;
                                         break;
                                     }
@@ -151,13 +152,86 @@ public class WorkerThreadChat extends Thread {
                             out.println(response.toJSONString());
                         }
                     } else if (inputLine.startsWith("sendprivatefile")) {
-                  
+                        String[] input = inputLine.split(" ");
+                        if (input.length == 5) {
+                            User receiver = null;
+                            synchronized (users) {
+                                for (User user : users) {
+                                    if (user.getId() == Integer.valueOf(input[1])) {
+                                        receiver = user;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (receiver != null && receiver.getSocket() != null) { //USER EXIST E TEM LOGIN
+                                int port = GetPort.getFreeAvaliablePort(groups);
+                                new ReceiveFileServer(port, input[2], Integer.parseInt(input[3]), receiver, loggedUser).start();
+                                JSONObject object = new JSONObject();
+                                object.put("port", port);
+                                object.put("address", socket.getInetAddress().getHostAddress());
+                                object.put("path", input[4]);
+                                out.println(makeJsonResponse("sendprivatefile", object.toJSONString()));
+                            }
+                        }
+                    } else if (inputLine.startsWith("sendgroupfile")) {
+                        String[] input = inputLine.split(" ");
+                        if (input.length == 5) {
+                            Group group = null;
+                            synchronized (loggedUser.getGroups()) {
+                                for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                                    if (x.getId() == Integer.valueOf(input[1])) {
+                                        group = x;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (group != null) { //se grupo existe
+                                int port = GetPort.getFreeAvaliablePort(groups);
+                                new ReceiveFileServer(port, input[2], Integer.parseInt(input[3]), group, loggedUser, socketUDP).start();
+                                JSONObject object = new JSONObject();
+                                object.put("port", port);
+                                object.put("address", socket.getInetAddress().getHostAddress());
+                                object.put("path", input[4]);
+                                out.println(makeJsonResponse("sendgroupfile", object.toJSONString()));
+                            }
+                        }
+                    } else if (inputLine.startsWith("receiveprivatefile")) {
+                        String[] input = inputLine.split(" ");
+                        if (input.length == 2) {
+                            int port = GetPort.getFreeAvaliablePort(groups);
+                            String path = "files/private/" + loggedUser.getUsername() + "/" + input[1];
+                            File file = new File(path);
+                            if (file.exists()) {
+                                new SendFileServer(port, path).start();
+                                JSONObject object = new JSONObject();
+                                object.put("port", port);
+                                object.put("address", socket.getInetAddress().getHostAddress());
+                                object.put("name", input[1]);
+                                object.put("size", file.length());
+                                out.println(makeJsonResponse("receiveprivatefile", object.toJSONString()));
+                            }
+                        }
+                    } else if (inputLine.startsWith("receivegroupfile")) {
+                        String[] input = inputLine.split(" ");
+                        if (input.length == 3) {
+                            int port = GetPort.getFreeAvaliablePort(groups);
+                            String path = "files/groups/" + input[1] + "/" + input[2];
+                            File file = new File(path);
+                            if (file.exists()) {
+                                new SendFileServer(port, path).start();
+                                JSONObject object = new JSONObject();
+                                object.put("port", port);
+                                object.put("address", socket.getInetAddress().getHostAddress());
+                                object.put("name", input[2]);
+                                object.put("size", file.length());
+                                out.println(makeJsonResponse("receivegroupfile", object.toJSONString()));
+                            }
+                        }
 
                     } else if (inputLine.startsWith("addgroup")) {
                         String[] input = inputLine.split(" ");
                         if (input.length == 2) {
                             //find if group name exists
-
                             boolean exists = false;
                             synchronized (groups) {
                                 for (Group x : groups) {
@@ -174,7 +248,7 @@ public class WorkerThreadChat extends Thread {
                                 groups.add(group);
                                 group.setServerPort(GetPort.getFreeAvaliablePort(groups)); //para nao retornar a mesma porta que em cima //FAZER DEBUG PARA VER
                                 //SE É NECESSARIO O -1 NO CONSTRUTOR
-//                            new WriteGroups(groupSemaphore, groups).start();
+                                new WriteGroups(groupSemaphore, groups).start();
 //                                new MulticastServerThread(address, group.getServerPort(), group.getPort()).start();
                                 response = makeJsonResponse("groupadded", input[1]);
                                 out.println(response.toJSONString());
@@ -195,7 +269,7 @@ public class WorkerThreadChat extends Thread {
                             Group group = null;
                             synchronized (groups) {
                                 for (Group x : groups) {
-                                    if (x.getName().equals(input[1])) {
+                                    if (x.getId() == Integer.valueOf(input[1])) {
                                         group = x;
                                         break;
                                     }
@@ -215,13 +289,38 @@ public class WorkerThreadChat extends Thread {
                             response = makeJsonResponse("error", "command");
                             out.println(response.toJSONString());
                         }
+                    } else if (inputLine.startsWith("editgroup")) {
+                        String[] input = inputLine.split(" ");
+                        if (input.length == 3) {
+                            Group group = null;
+                            synchronized (groups) {
+                                for (Group x : groups) {
+                                    if (x.getId() == Integer.valueOf(input[1])) {
+                                        group = x;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (group != null) { //se group existe
+                                group.setName(input[2]);
+
+                                response = makeJsonResponse("editedgroup", group.toString());
+                                out.println(response.toJSONString());
+                            } else {
+                                response = makeJsonResponse("error", "group_not_exists");
+                                out.println(response.toJSONString());
+                            }
+                        } else {
+                            response = makeJsonResponse("error", "command");
+                            out.println(response.toJSONString());
+                        }
                     } else if (inputLine.startsWith("remgroup")) {
                         String[] input = inputLine.split(" ");
                         if (input.length == 2) {
                             Group group = null;
                             synchronized (groups) {
                                 for (Group x : groups) {
-                                    if (x.getName().equals(input[1])) {
+                                    if (x.getId() == Integer.valueOf(input[1])) {
                                         group = x;
                                         break;
                                     }
@@ -232,19 +331,10 @@ public class WorkerThreadChat extends Thread {
                                 if (!group.hasUsers()) {
                                     //remover o grupo
                                     groups.remove(group);
-                                    //parar o thread
-//                                    byte[] buf = new byte[256];
-//                                    System.out.println("UNICAST SENDER PORT:" + socketUDP.getPort() + " GROUP:" + input[1]);
-//                                    String string = "shutdown";
-//                                    buf = string.getBytes();
-//                                    DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
-//                                    socketUDP.send(packet);
-
                                 } else {
                                     response = makeJsonResponse("error", "group_not_empty");
                                     out.println(response.toJSONString());
                                 }
-
                             } else {
                                 response = makeJsonResponse("error", "group_not_exists");
                                 out.println(response.toJSONString());
@@ -259,9 +349,9 @@ public class WorkerThreadChat extends Thread {
                         String[] input = inputLine.split(" ");
                         if (input.length == 2) {
                             Group group = null;
-                            synchronized (groups) {
-                                for (Group x : groups) {
-                                    if (x.getName().equals(input[1])) {
+                            synchronized (loggedUser.getGroups()) {
+                                for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                                    if (x.getId() == Integer.valueOf(input[1])) {
                                         group = x;
                                         break;
                                     }
@@ -272,7 +362,6 @@ public class WorkerThreadChat extends Thread {
                                 group.removeUser(loggedUser);
                                 byte[] buf = new byte[256];
                                 System.out.println("UNICAST SENDER PORT:" + socketUDP.getPort() + " GROUP:" + input[1]);
-//                                String string = loggedUser.getUsername() + " " + input[0];
                                 String res = makeJsonResponse("leave", loggedUser.getUsername()).toJSONString();
                                 buf = res.getBytes();
                                 DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
@@ -292,7 +381,7 @@ public class WorkerThreadChat extends Thread {
                             Group group = null;
                             synchronized (loggedUser.getGroups()) {
                                 for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
-                                    if (x.getName().equals(input[1])) {
+                                    if (x.getId() == Integer.valueOf(input[1])) {
                                         group = x;
                                         break;
                                     }
@@ -315,13 +404,38 @@ public class WorkerThreadChat extends Thread {
                             response = makeJsonResponse("error", "command");
                             out.println(response.toJSONString());
                         }
+                    } else if (inputLine.startsWith("listgroups")) {
+
+                        JSONArray list = new JSONArray();
+                        synchronized (groups) {
+                            for (Group group : groups) {
+                                list.add(group.toString());
+                            }
+
+                        }
+                        out.println(makeJsonResponse("listgroups", list.toJSONString()).toJSONString());
+
+                    } else if (inputLine.startsWith("listloggedusers")) {
+
+                        JSONArray list = new JSONArray();
+                        synchronized (users) {
+                            for (User user : users) {
+                                if (user.getSocket() != null) { //se tem login
+                                    list.add(user.toString());
+                                }
+
+                            }
+
+                        }
+                        out.println(makeJsonResponse("listgroups", list.toJSONString()).toJSONString());
+
                     } else if (inputLine.startsWith("listgroupmsgs")) {
                         String[] input = inputLine.split(" ");
                         if (input.length == 2) {
                             Group group = null;
                             synchronized (loggedUser.getGroups()) {
                                 for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
-                                    if (x.getName().equals(input[1])) {
+                                    if (x.getId() == Integer.valueOf(input[1])) {
                                         group = x;
                                         break;
                                     }

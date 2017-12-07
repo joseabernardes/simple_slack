@@ -13,6 +13,9 @@ import org.json.simple.JSONObject;
 
 public class Group implements Serializable {
 
+    private static int ID = 0;
+
+    private int id;
     private int port;
     private int serverPort;
     private String name;
@@ -21,6 +24,7 @@ public class Group implements Serializable {
     private final List<User> users;
 
     public Group(int port, String name, String address) {
+        this.id = ++ID;
         this.port = port;
         this.name = name;
         this.address = address;
@@ -86,11 +90,21 @@ public class Group implements Serializable {
         this.name = name;
     }
 
+    public static void setID(int id) {
+        Group.ID = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
     @Override
     public String toString() {
         JSONObject obj = new JSONObject();
         obj.put("address", address);
         obj.put("port", port);
+        obj.put("id", id);
+        obj.put("name", name);
         return obj.toJSONString();
     }
 

@@ -49,21 +49,21 @@
                             <Insets />
                         </opaqueInsets>
                     </Label>
-                    <ImageView fitHeight="20.0" fitWidth="61.0" layoutX="181.0" layoutY="83.0" onMouseClicked="#onClickJoinGroup" pickOnBounds="true" preserveRatio="true" styleClass="add_group">
+                    <ImageView fitHeight="20.0" fitWidth="61.0" layoutX="179.0" layoutY="82.0" onMouseClicked="#onClickAddGroup" pickOnBounds="true" preserveRatio="true" styleClass="add_group">
                         <image>
                             <Image url="@../images/ic/ic_add_circle_outline_white.png" />
-                        </image>
-                    </ImageView>
-                    <ImageView fitHeight="20.0" fitWidth="61.0" layoutX="207.0" layoutY="83.0" onMouseClicked="#onClickAddGroup" pickOnBounds="true" preserveRatio="true" styleClass="edit_groups">
-                        <image>
-                            <Image url="@../images/ic/ic_settings_outline.png" />
                         </image>
                     </ImageView>
                     <ImageView fitHeight="20.0" fitWidth="61.0" layoutX="207.0" layoutY="362.0" onMouseClicked="#onClickAddPrivate" pickOnBounds="true" preserveRatio="true" styleClass="add_private">
                         <image>
-                            <Image url="@../images/ic/ic_add_circle_outline_white.png" />
+                            <Image url="@../images/ic/ic_chat_white.png" />
                         </image>
                     </ImageView>
+               <ImageView fitHeight="20.0" fitWidth="61.0" layoutX="207.0" layoutY="83.0" onMouseClicked="#onClickJoinGroup" pickOnBounds="true" preserveRatio="true" styleClass="join_group">
+                  <image>
+                     <Image url="@../images/ic/ic_chat_white.png" />
+                  </image>
+               </ImageView>
                 </children>
             </AnchorPane>
             <!--      <AnchorPane layoutX="233.0" prefHeight="600.0" prefWidth="769.0">

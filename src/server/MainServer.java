@@ -48,6 +48,7 @@ public class MainServer extends Thread {
             in = new ObjectInputStream(new FileInputStream(file));
             users = (List<User>) in.readObject();
         } catch (ClassNotFoundException | IOException ex) {
+
             users = Collections.synchronizedList(new ArrayList<User>());
             users.add(new User("alfredo", "quim"));
             users.add(new User("joel", "joel"));
@@ -57,6 +58,7 @@ public class MainServer extends Thread {
         } finally {
             userSemaphore.release();
         }
+        User.setID(users.size());
     }
 
     private void readGroups() {
@@ -74,6 +76,7 @@ public class MainServer extends Thread {
         } finally {
             groupSemaphore.release();
         }
+        Group.setID(groups.size());
     }
 
     @Override

@@ -36,14 +36,13 @@ public class ReceiverThread extends Thread {
             String inputLine;
             JSONObject response;
             while ((inputLine = in.readLine()) != null) {
+
                 response = makeJsonResponse(inputLine);
 
                 if (response.get("command").equals("joinedgroup")) {
                     String[] input = inputLine.split(" ");
                     JSONObject data = makeJsonResponse(response.get("data").toString());
-                    if (data.size() == 2) {
-                        new MulticastClientThread(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), username).start();
-                    }
+                    new MulticastClientThread(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), username).start();
 
                 } else if (response.get("command").equals("listgroupmsgs")) {
                     String[] input = inputLine.split(" ", 3);
@@ -52,9 +51,29 @@ public class ReceiverThread extends Thread {
                     }
 
                 } else if (response.get("command").equals("loginsuccess")) {
-                    if (response.size() == 2) {
-                        username = response.get("data").toString();
-                    }
+
+                    username = response.get("data").toString();
+
+                } else if (response.get("command").equals("sendprivatefile")) {
+
+                    JSONObject data = makeJsonResponse(response.get("data").toString());
+                    new ClientFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
+
+                } else if (response.get("command").equals("sendgroupfile")) {
+
+                    JSONObject data = makeJsonResponse(response.get("data").toString());
+                    new ClientFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
+
+                } else if (response.get("command").equals("filesended")) {
+
+                } else if (response.get("command").equals("receiveprivatefile")) {
+                    JSONObject data = makeJsonResponse(response.get("data").toString());
+                    new ReceiveFileClient(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), "C:\\Users\\José Bernardes\\Desktop").start();
+
+                } else if (response.get("command").equals("receivegroupfile")) {
+                    JSONObject data = makeJsonResponse(response.get("data").toString());
+                    new ReceiveFileClient(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), "C:\\Users\\José Bernardes\\Desktop").start();
+
                 }
 
                 System.out.println(response);

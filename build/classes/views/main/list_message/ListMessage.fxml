@@ -17,7 +17,7 @@
         <URL value="@listmessage.css" />
     </stylesheets>
     <children>
-        <JFXTextField fx:id="textGroup" layoutX="12.0" layoutY="555.0" onAction="#onAction" prefHeight="31.0" prefWidth="670.0" promptText="Escreva aqui a sua mensagem" />
+        <JFXTextField fx:id="textField" layoutX="52.0" layoutY="555.0" onAction="#onAction" prefHeight="31.0" prefWidth="630.0" promptText="Escreva aqui a sua mensagem" />
         <JFXListView fx:id="messages" layoutX="12.0" layoutY="62.0" prefHeight="489.0" prefWidth="736.0" style="-fx-focus-color: transparent; -fx-background-color: transparent;" styleClass="list_msg" stylesheets="@listmessage.css" />
         <AnchorPane layoutX="12.0" layoutY="14.0" prefHeight="36.0" prefWidth="736.0">
             <children>
@@ -45,6 +45,21 @@
                   </image>
               </ImageView>
          </graphic>
+      </JFXButton>
+      <JFXButton graphicTextGap="0.0" layoutY="548.0" onMouseClicked="#onClickFile" prefHeight="46.0" prefWidth="25.0" text=" " textAlignment="CENTER" AnchorPane.bottomAnchor="6.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="712.0" AnchorPane.topAnchor="548.0">
+         <graphic>
+            <ImageView fx:id="file_icon" fitHeight="24.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true" styleClass="file_empty">
+               <image>
+                  <Image url="@../../images/ic/ic_attach_file.png" />
+               </image>
+            </ImageView>
+         </graphic>
+         <font>
+            <Font size="14.0" />
+         </font>
+         <tooltip>
+            <Tooltip text="Sem Anexo" />
+         </tooltip>
       </JFXButton>
     </children>
 </AnchorPane>
