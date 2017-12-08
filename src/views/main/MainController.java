@@ -16,6 +16,8 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -108,30 +110,35 @@ public class MainController implements Initializable {
 
     public void getMessages() {
         List<Message> mensagens = new ArrayList<Message>();
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola"));
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola wpokr pogkpj go idjbshfvkbdsgkvjnv"));
-        mensagens.add(new Message("Joel", LocalDateTime.now(), "O sdhgosdhgbhsgliajsgbkmglkmglk la"));
-        mensagens.add(new Message("Joel", LocalDateTime.now(), "sdigj psoOla"));
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola wpokr pogkpj go idjbshfvkbdsgkvjnv"));
-        mensagens.add(new Message("Joel", LocalDateTime.now(), "O sdhgosdhgbhsgliajsgbkmglkmglk la"));
-        mensagens.add(new Message("Alfredo", LocalDateTime.now(), "Odspgj pg ijspg jfpb ojsgojgp jd pgsjgposjdgp sojgpsodjg psdojg psdog jspogj spdo gjpsog jspdogjspogjspogjspogjspogjpsogjspdodsadkas+fokas+foas+fkas+gokas+fpksa+fpaskf+gjpdfogjspgojspgojspgojsdpgojspgojsdpgosjdgposdjgpsodfjgpsodgjpjogla"));
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola"));
+        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola 1", true));
+        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola wpokr pogkpj go idjbshfvkbdsgkvjnv 2"));
+        mensagens.add(new Message("Joel", LocalDateTime.now(), "O sdhgosdhgbhsgliajsgbkmglkmglk la 3", true));
+        mensagens.add(new Message("Joel", LocalDateTime.now(), "sdigj psoOla 4"));
+        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola wpokr pogkpj go idjbshfvkbdsgkvjnv 5", true));
+        mensagens.add(new Message("Joel", LocalDateTime.now(), "O sdhgosdhgbhsgliajsgbkmglkmglk la 6"));
+        mensagens.add(new Message("Alfredo", LocalDateTime.now(), "Odspgj pg ijspg jfpb ojsgojgp jd pgsjgposjdgp sojgpsodjg psdojg psdog jspogj spdo gjpsog jspdogjspogjspogjspogjspogj psogjspdodsadkas+fokas+foas+fkas+gokas+fpksa+fpaskf+ gjpdfogjspgojspgojspgojsdpgojspgojsdpgosjdgposdjgpsodfjgpsodgjpjogla 7", true));
+        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola 8"));
         privateMessages = FXCollections.observableArrayList(mensagens);
 
     }
 
-    public void setChatPane(String groupname, int typeOfChat) {
+    public void setChatPane(String chatName, int typeOfChat) {
         try {
+            List<Message> ss = new ArrayList<Message>();
+
+            for (int j = 0; j < 10; j++) {
+                ss.add(new Message(chatName, LocalDateTime.now(), "Olá " + j, new Random().nextBoolean()));
+            }
 
             if (controller == null) {//first time
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("list_message/ListMessage.fxml"));
                 Parent node = loader.load();
                 controller = loader.getController();
-                controller.setController(main, groupname, typeOfChat, privateMessages);
+                controller.setController(main, chatName, typeOfChat, FXCollections.observableArrayList(ss));
                 pane.getChildren().clear();
                 pane.getChildren().add(node);
             } else {
-                controller.setController(main, groupname, typeOfChat, privateMessages);
+                controller.setController(main, chatName, typeOfChat, FXCollections.observableArrayList(ss));
             }
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -202,6 +209,7 @@ public class MainController implements Initializable {
         dialog.show();
 
     }
+    int i = 8;
 
     @FXML
     private void onClickAddGroup(MouseEvent event) {
@@ -217,7 +225,8 @@ public class MainController implements Initializable {
             dialog.close();
         });
         content.setActions(cancel, ok);
-        privateMessages.add(new Message("JOAQUIM", LocalDateTime.now(), "BEM VINDOS AMIGOS"));
+        boolean file = new Random().nextBoolean();
+        privateMessages.add(new Message("JOAQUIM", LocalDateTime.now(), "BEM VINDOS AMIGOS " + ++i, file));
 
         dialog.show();
 

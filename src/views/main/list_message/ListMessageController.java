@@ -18,6 +18,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,11 +26,13 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -41,6 +44,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import model.Message;
 import org.json.simple.JSONObject;
@@ -51,10 +55,10 @@ import org.json.simple.JSONObject;
  * @author José Bernardes
  */
 public class ListMessageController implements Initializable {
-    
+
     public static final int PRIVATE = 1;
     public static final int GROUP = 2;
-    
+
     @FXML
     private JFXListView<Message> messages;
     @FXML
@@ -67,16 +71,16 @@ public class ListMessageController implements Initializable {
     private JFXButton edit_group;
     @FXML
     private Label title;
-    
+
     private StackPane main;
-    
+
     private JSONObject file;
     @FXML
     private ImageView file_icon;
-    
+
     public ListMessageController() {
     }
-    
+
     public void setController(StackPane main, String chatName, int typeOfChat, ObservableList<Message> messagesList) {
         this.main = main;
         if (typeOfChat == ListMessageController.GROUP) {
@@ -88,14 +92,16 @@ public class ListMessageController implements Initializable {
             leave_group.setVisible(false);
             edit_group.setVisible(false);
         }
+//        SortedList<Message> sr = messagesList.sorted();
         groupName.setText(chatName);
         messages.setItems(messagesList);
+//        messages.setItems(sr);
         messages.setCellFactory(param -> new Cell());
-        
+
     }
-    
+
     static class Cell extends ListCell<Message> {
-        
+
         private final AnchorPane pane;
         private ImageView avatar;
         private final Label username;
@@ -103,11 +109,11 @@ public class ListMessageController implements Initializable {
         private final Hyperlink link;
         private final HBox messagePane;
         private final Text message;
-        
+
         public Cell() {
             super();
             this.getStyleClass().add("list_msg");
-            
+
             try {
                 avatar = new ImageView(new Image(new FileInputStream("src/views/images/avatar.png")));
             } catch (FileNotFoundException ex) {
@@ -131,19 +137,21 @@ public class ListMessageController implements Initializable {
 
 //         
             link = new Hyperlink("files_sender.xml");
-            
+            link.getStyleClass().add("hyperlink");
+//            link.setPadding(Insets.EMPTY);
+
             message = new Text("ola amigos");
 //            message.setLayoutX(71.0);
 //            message.setLayoutY(49.0);
             message.setWrappingWidth(550.0);
-            
-            messagePane = new HBox(message);
+
+            messagePane = new HBox();
             messagePane.setLayoutX(71.0);
             messagePane.setLayoutY(49.0);
             pane = new AnchorPane(avatar, username, time, messagePane);
-            
+
         }
-        
+
         @Override
         protected void updateItem(Message item, boolean empty) {
             super.updateItem(item, empty);
@@ -154,20 +162,51 @@ public class ListMessageController implements Initializable {
                 time.setText(item.getDate().toString());
                 username.setText(item.getUsername());
                 setGraphic(pane);
-                
-                boolean file = false;
-                if (file) {
-                    messagePane.getChildren().add(0, link);
+
+                messagePane.getChildren().clear();
+                if (item.isFile()) {
+                    messagePane.getChildren().add(link);
+                    HBox.setMargin(link, new Insets(-4.0, 0, -4.0, 0));
+
+                    message.setText("142Mb");
+//                    message.setFont(Font.font(10.0));
                     link.setText("files_sender.xml");
                     link.setOnAction((ActionEvent event) -> {
-                        System.out.println("files_sender.xml");
+                        downloadFile("files_sender.xml");
+
                     });
-                    
+                    messagePane.getChildren().add(message);
+//                    HBox.setMargin(message, new Insets(3.0, 0, 0, 0));
+                } else {
+                    messagePane.getChildren().add(message);
                 }
-                
+
             }
         }
-        
+
+        private void downloadFile(String fileName) {
+            DirectoryChooser chooser = new DirectoryChooser();
+            chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+            File selectedDirectory = chooser.showDialog(null);
+            if (selectedDirectory != null) {
+
+                System.out.println(selectedDirectory.getAbsolutePath());
+                System.out.println(fileName);
+
+            } else {
+
+                System.out.println("null");
+                System.out.println(fileName);
+
+            }
+
+        }
+    }
+
+    private void downloadFile(String fileName) {
+        FileChooser fc = new FileChooser();
+        fc.setInitialDirectory(new File(System.getProperty("user.home")));
+        File selectedFile = fc.showOpenDialog(null);
     }
 
     /**
@@ -175,37 +214,37 @@ public class ListMessageController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        messages.getItems().addListener(new ListChangeListener<Message>() {
+        /*     messages.getItems().addListener(new ListChangeListener<Message>() {
             @Override
             public void onChanged(ListChangeListener.Change<? extends Message> c) {
                 System.out.println("Changed");
                 messages.scrollTo(c.getList().size() - 1);
                 
             }
-        });
-        
+        });*/
+
     }
-    
+
     @FXML
     private void onClickSend(MouseEvent event) {
         sendMessage();
     }
-    
+
     @FXML
     private void onAction(ActionEvent event) {
         sendMessage();
     }
-    
+
     private void sendMessage() {
         if (file != null) {
-            
+
         }
         String text = textField.getText();
         System.out.println("SEND: " + text + "TO: " + groupName.getText());
         textField.setText("");
         textField.setDisable(false);
     }
-    
+
     @FXML
     private void onClickLeave(MouseEvent event) {
         JFXDialogLayout content = new JFXDialogLayout();
@@ -223,10 +262,10 @@ public class ListMessageController implements Initializable {
         content.setActions(cancel, ok);
         dialog.show();
     }
-    
+
     @FXML
     private void onClickEdit(MouseEvent event) {
-        
+
         JFXDialogLayout content = new JFXDialogLayout();
         JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
         content.setHeading(new Text("Editar nome Grupo"));
@@ -242,10 +281,10 @@ public class ListMessageController implements Initializable {
         dialog.show();
         System.out.println("Edit group " + groupName.getText());
     }
-    
+
     @FXML
     private void onClickRemove(MouseEvent event) {
-        
+
         JFXDialogLayout content = new JFXDialogLayout();
         JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
         content.setHeading(new Text("Remover grupo"));
@@ -261,7 +300,7 @@ public class ListMessageController implements Initializable {
         content.setActions(cancel, ok);
         dialog.show();
     }
-    
+
     @FXML
     private void onClickFile(MouseEvent event) {
         FileChooser fc = new FileChooser();
@@ -287,7 +326,7 @@ public class ListMessageController implements Initializable {
             textField.setDisable(false);
         }
     }
-    
+
     private JSONObject makeJson(String filePath, String fileName, long lengh) {
         JSONObject obj = new JSONObject();
         obj.put("path", filePath);

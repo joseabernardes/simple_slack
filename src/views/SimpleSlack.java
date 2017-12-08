@@ -39,6 +39,11 @@ public class SimpleSlack extends Application {
         stage.show();
     }
 
+    @Override
+    public void stop() throws Exception {
+        System.out.println("Closing");
+    }
+
     public static void main(String[] args) {
         launch(args);
     }

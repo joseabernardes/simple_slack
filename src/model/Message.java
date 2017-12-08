@@ -12,16 +12,25 @@ import org.json.simple.JSONObject;
  *
  * @author José Bernardes
  */
-public class Message {
+public class Message implements Comparable<Message> {
 
     private final String username;
     private final LocalDateTime date;
     private final String message;
+    private final boolean file;
 
     public Message(String username, LocalDateTime date, String message) {
         this.username = username;
         this.date = date;
         this.message = message;
+        file = false;
+    }
+
+    public Message(String username, LocalDateTime date, String message, boolean file) {
+        this.username = username;
+        this.date = date;
+        this.message = message;
+        this.file = file;
     }
 
     @Override
@@ -69,6 +78,10 @@ public class Message {
         return username;
     }
 
+    public boolean isFile() {
+        return file;
+    }
+
     public LocalDateTime getDate() {
         return date;
     }
@@ -76,4 +89,23 @@ public class Message {
     public String getMessage() {
         return message;
     }
+
+    @Override
+    public int compareTo(Message o) {
+        return this.date.compareTo(o.date);
+    }
 }
+//
+//@Override
+//        public int compareTo(Comparator obj){
+//        int objNumDias = ((Evento)obj).getNumDias();
+//        
+//        if (numDias > objNumDias) {
+//            return 2;
+//        } else if (numDias < objNumDias) {
+//            return -2;
+//
+//        }else{
+//            return 0;
+//        }
+//    }
