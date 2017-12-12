@@ -1,0 +1,77 @@
+
+
+JFXListView .scroll-bar:horizontal .track, JFXListView .scroll-bar:vertical .track{
+    -fx-background-color:transparent;
+    -fx-border-color:transparent;
+    /*    -fx-background-color:#4d394b;
+        -fx-border-color:#4d394b;*/
+    -fx-background-radius: 0em;
+    -fx-border-radius:2em;
+}
+
+JFXListView .scroll-bar:horizontal .increment-button ,JFXListView .scroll-bar:horizontal .decrement-button {
+    -fx-background-color:transparent;
+    -fx-background-radius: 0em;
+    -fx-padding:0 0 10 0;
+}
+
+/*#4d394b*/
+
+JFXListView .scroll-bar:vertical .increment-button ,JFXListView .scroll-bar:vertical .decrement-button {
+    -fx-background-color:transparent;
+    -fx-background-radius: 0em;
+    -fx-padding:0 10 0 0;
+}
+JFXListView  .scroll-bar .increment-arrow,JFXListView  .scroll-bar .decrement-arrow{
+    -fx-shape:" ";  
+    -fx-padding:0;
+}
+
+JFXListView .scroll-bar:horizontal .thumb,JFXListView .scroll-bar:vertical .thumb {
+    -fx-background-color:derive(black,90%);
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+.list_msg:focused {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color; 
+    -fx-background-insets: 0, 1, 2;
+    /*-fx-background-insets: 0;*/
+    /*-fx-background-radius: 5, 4, 3;*/
+    -fx-background-radius: 0;
+}
+
+.list_msg:selected{
+    /*-fx-background-color: #4c9689;*/
+    -fx-background-color: transparent;
+    /*-fx-background-color: black;*/
+
+}
+
+.list_msg:selected .hyperlink{
+    -fx-text-fill: blue;
+
+}
+.hyperlink:selected{
+
+    /*    -fx-text-fill: whi*/
+}
+
+
+
+
+
+
+.list_msg{
+    -fx-background-insets: 0.0;
+    -fx-background-color: transparent;
+}
+
+.list_msg:hover{
+    -fx-background-color: #00000017;
+}
+.fx-list-view {
+    -fx-background-insets: 0;
+    -fx-pref-with:150;
+}
+

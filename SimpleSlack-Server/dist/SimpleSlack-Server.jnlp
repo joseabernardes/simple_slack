@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="SimpleSlack-Server.jnlp">
+  <information>
+    <title>SimpleSlack-Server</title>
+    <vendor>José Bernardes</vendor>
+    <description>null</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="SimpleSlack-Server.jar" size="206161" download="eager" />
+    <jar href="lib\jfoenix.jar" size="2414497" download="eager" />
+    <jar href="lib\json-simple-1.1.1.jar" size="23737" download="eager" />
+  </resources>
+  <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="SimpleSlack-Server" >
+    <param name="requiredFXVersion" value="8.0+"/>
+  </applet-desc>
+  <jfx:javafx-desc  width="800" height="600" main-class="views.SimpleSlack"  name="SimpleSlack-Server" />
+  <update check="always"/>
+</jnlp>

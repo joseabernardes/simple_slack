@@ -1,0 +1,198 @@
+/*
+ * Empty Stylesheet file.
+ */
+
+.mainFxmlClass {
+    -fx-background-color:white;
+}
+
+.left-list:focused {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color; 
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 5, 4, 3;
+}
+
+
+.jfx-list-cell:selected{
+    -fx-background-color: #4c9689;
+
+}
+
+.lbl-cell{
+    -fx-text-fill: #b8b0b7;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px ;
+}
+
+
+
+/*.list-cell:filled:selected:focused, .list-cell:filled:selected {
+    -fx-background-color: linear-gradient(#328BDB 0%, #207BCF 25%, #1973C9 75%, #0A65BF 100%);
+    -fx-text-fill: white;
+}
+
+.list-cell:even {  <=== changed to even 
+    -fx-background-color: white;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #0093ff;
+    -fx-text-fill: white;
+}*/
+
+.jfx-list-cell{
+    -fx-background-insets: 0.0;
+    -fx-background-color: transparent;
+}
+
+.jfx-list-cell .jfx-rippler{
+    -jfx-rippler-fill: #4d394b;
+    /*-jfx-rippler-fill:BLUE;*/
+}
+
+
+
+.jfx-list-cell:hover{
+    -fx-background-color: #4c9689;
+
+}
+
+
+.fx-list-view {
+    -fx-background-insets: 0;
+    -fx-pref-with:150;
+}
+
+
+
+/*Scroll*/
+.addLists JFXListView .scroll-bar:vertical .track , .addLists JFXListView .scroll-bar:horizontal .track {
+    -fx-background-color:white;
+    -fx-border-color:white;
+    -fx-background-radius: 0em;
+    -fx-border-radius:2em;
+}
+
+
+JFXListView .scroll-bar:horizontal .track, JFXListView .scroll-bar:vertical .track{
+    /*    -fx-background-color:transparent;
+        -fx-border-color:transparent;*/
+    -fx-background-color:#4d394b;
+    -fx-border-color:#4d394b;
+    -fx-background-radius: 0em;
+    -fx-border-radius:2em;
+}
+
+JFXListView .scroll-bar:horizontal .increment-button ,JFXListView .scroll-bar:horizontal .decrement-button ,.addLists .scroll-bar:vertical .decrement-button{
+    -fx-background-color:transparent;
+    -fx-background-radius: 0em;
+    -fx-padding:0 0 10 0;
+}
+
+/*#4d394b*/
+
+JFXListView .scroll-bar:vertical .increment-button ,JFXListView .scroll-bar:vertical .decrement-button,.addLists .scroll-bar:vertical .decrement-button{
+    -fx-background-color:transparent;
+    -fx-background-radius: 0em;
+    -fx-padding:0 10 0 0;
+}
+JFXListView  .scroll-bar .increment-arrow,JFXListView  .scroll-bar .decrement-arrow, .addLists .scroll-bar .decrement-arrow, .addLists  .scroll-bar .increment-arrow{
+    -fx-shape:" ";  
+    -fx-padding:0;
+}
+
+JFXListView .scroll-bar:horizontal .thumb,JFXListView .scroll-bar:vertical .thumb,.addLists .scroll-bar:vertical .thumb {
+    -fx-background-color:derive(black,90%);
+    -fx-background-insets: 2, 0, 0;
+    -fx-background-radius: 2em;
+}
+
+
+
+.add_group{
+    -fx-image: url(../images/ic/ic_add_circle_outline_white.png);
+}
+.add_group:hover{
+    -fx-image: url(../images/ic/ic_add_circle.png);
+}
+
+
+.edit_groups{
+    -fx-image: url(../images/ic/ic_settings_outline.png);
+}
+.edit_groups:hover{
+    -fx-image: url(../images/ic/ic_settings.png);
+}
+
+.add_private{
+    /*-fx-image: url(../images/ic/ic_add_circle_outline_white.png);*/
+    -fx-image: url(../images/ic/ic_chat_white.png);
+}
+
+.add_private:hover{
+    /*-fx-image: url(../images/ic/ic_add_circle.png);*/
+
+    -fx-image: url(../images/ic/ic_chat_bubble_white.png);
+}
+
+.join_group{
+    /*-fx-image: url(../images/ic/ic_add_circle_outline_white.png);*/
+    -fx-image: url(../images/ic/ic_chat_white.png);
+}
+
+.join_group:hover{
+    /*-fx-image: url(../images/ic/ic_add_circle.png);*/
+
+    -fx-image: url(../images/ic/ic_chat_bubble_white.png);
+}
+
+.file_empty{
+    -fx-image: url(../images/ic/ic_attach_file.png);
+
+}
+.file_not_empty{
+    -fx-image: url(../images/ic/ic_attach_file_red.png);
+
+}
+
+
+/*  SNACKBAR  */
+
+.jfx-snackbar-content{
+    /*-fx-backgroud: #212121;*/
+    -fx-background-color: #212121d6;
+}/*
+
+*/
+.jfx-snackbar-toast{
+    -fx-text-fill:white;
+}
+
+
+
+
+
+/*DECORATOR*/
+
+.jfx-decorator {
+    -fx-decorator-color: #3c2539;
+}
+
+.jfx-decorator .jfx-decorator-buttons-container {
+    -fx-background-color: -fx-decorator-color;
+}
+
+.jfx-decorator .resize-border {
+    -fx-border-color: -fx-decorator-color;
+    -fx-border-width: 0 4 4 4;
+}
+
+
+.addLists > .viewport {
+    -fx-background-color: transparent;
+}
+.addLists{
+    -fx-background-color: transparent;
+
+}
+
