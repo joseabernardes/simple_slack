@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.json.simple.JSONObject;
 
 public class Group implements Serializable {
@@ -20,7 +22,7 @@ public class Group implements Serializable {
     private int serverPort;
     private String name;
     private String address;
-    private final List<Message> messages;
+    private ObservableList<Message> messages;
     private final List<User> users;
 
     public Group(int port, String name, String address) {
@@ -29,12 +31,16 @@ public class Group implements Serializable {
         this.name = name;
         this.address = address;
         serverPort = -1;
-        this.messages = Collections.synchronizedList(new ArrayList<Message>());
+        this.messages = FXCollections.observableArrayList(new ArrayList<Message>());
         this.users = Collections.synchronizedList(new ArrayList<User>());
     }
 
     public List<User> getUsers() {
         return users;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public boolean addUser(User user) {
@@ -74,7 +80,7 @@ public class Group implements Serializable {
         return messages.add(message);
     }
 
-    public List<Message> getMessages() {
+    public ObservableList<Message> getMessages() {
         return this.messages;
     }
 
@@ -106,6 +112,12 @@ public class Group implements Serializable {
         obj.put("id", id);
         obj.put("name", name);
         return obj.toJSONString();
+    }
+
+    public static Group newGroup(JSONObject obj) {
+        Group group = new Group(Integer.valueOf(obj.get("port").toString()), obj.get("name").toString(), obj.get("address").toString());
+        group.setId(Integer.valueOf(obj.get("id").toString()));
+        return group;
     }
 
 }

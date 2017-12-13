@@ -6,44 +6,24 @@
 package model;
 
 import java.io.Serializable;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import libs.encrypt.BCrypt;
-//import libs.encrypt.BCrypt;
-import org.json.simple.JSONObject;
 
 /**
+ * CLASSE USER CLIENTE
  *
- * @author José Bernardes
  */
 public class User implements Serializable {
 
-    private static int ID = 0;
-
-    private final int id;
     private String username;
-    private String password;
-    private transient Socket socket;
     private final List<Group> groups;
     private final List<PrivateChat> privateChat;
 
-    public User(String username, String password) {
-        this.id = ++ID;
+    public User(String username) {
         this.username = username;
-        this.password = BCrypt.hashpw(password, BCrypt.gensalt());
-        this.socket = null;
         this.groups = Collections.synchronizedList(new ArrayList<Group>());
         this.privateChat = Collections.synchronizedList(new ArrayList<PrivateChat>());
-    }
-
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public void setSocket(Socket socket) {
-        this.socket = socket;
     }
 
     public String getUsername() {
@@ -52,14 +32,6 @@ public class User implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public boolean checkPassword(String password) {
-        return BCrypt.checkpw(password, this.password);
-    }
-
-    public void setPassword(String password) {
-        this.password = BCrypt.hashpw(password, BCrypt.gensalt());
     }
 
     public boolean addGroup(Group group) {
@@ -107,20 +79,15 @@ public class User implements Serializable {
         return false;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public static void setID(int id) {
-        User.ID = id;
-    }
-
-    @Override
-    public String toString() {
-        JSONObject obj = new JSONObject();
-        obj.put("name", username);
-        obj.put("id", id);
-        return obj.toJSONString();
+    public void removePrivateChat(User user) {
+        synchronized (privateChat) {
+            for (PrivateChat privateChat1 : privateChat) {
+                if (privateChat1.getUser().equals(user)) {
+                    privateChat.remove(privateChat1);
+                    return;
+                }
+            }
+        }
     }
 
 }

@@ -21,7 +21,7 @@
             <AnchorPane maxWidth="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="233.0" style="-fx-background-color: #4d394b;">
                 <children>
                     <Region maxWidth="-Infinity" minWidth="-Infinity" prefHeight="75.0" prefWidth="233.0" style="-fx-background-color: #3c2539;" />
-                    <Label alignment="CENTER" contentDisplay="CENTER" layoutX="67.0" layoutY="18.0" prefHeight="40.0" prefWidth="140.0" text="Alfredo" textFill="WHITE">
+                    <Label fx:id="logged_user" alignment="CENTER" contentDisplay="CENTER" layoutX="67.0" layoutY="18.0" prefHeight="40.0" prefWidth="140.0" text="Alfredo" textFill="WHITE">
                         <font>
                             <Font name="System Bold" size="22.0" />
                         </font>

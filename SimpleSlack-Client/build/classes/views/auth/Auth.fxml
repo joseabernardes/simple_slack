@@ -22,7 +22,7 @@
                 <Image url="@../images/simple-slack.png" />
             </image>
         </ImageView>
-        <JFXTabPane layoutX="14.0" layoutY="131.0" prefHeight="405.0" prefWidth="469.0" tabMinWidth="229.0">
+        <JFXTabPane fx:id="tab_pan" layoutX="14.0" layoutY="131.0" prefHeight="405.0" prefWidth="469.0" tabMinWidth="229.0">
             <tabs>
                 <Tab text="Registar">
                     <content>
@@ -48,7 +48,7 @@
                                         <Font size="16.0" />
                                     </font>
                                 </JFXButton>
-                                <Label fx:id="registErrors" alignment="TOP_CENTER" layoutX="95.0" layoutY="346.0" prefHeight="21.0" prefWidth="280.0" text="..." textAlignment="CENTER" textFill="RED" />
+                                <Label fx:id="registErrors" alignment="TOP_CENTER" layoutX="95.0" layoutY="346.0" prefHeight="21.0" prefWidth="280.0" textAlignment="CENTER" textFill="RED" />
                             </children>
                         </AnchorPane>
                     </content>
@@ -72,7 +72,7 @@
                                         <Font size="16.0" />
                                     </font>
                                 </JFXButton>
-                                <Label fx:id="logErrors" alignment="TOP_CENTER" layoutX="95.0" layoutY="346.0" prefHeight="21.0" prefWidth="280.0" text="..." textAlignment="CENTER" textFill="RED" />
+                                <Label fx:id="logErrors" alignment="TOP_CENTER" layoutX="95.0" layoutY="346.0" prefHeight="21.0" prefWidth="280.0" textAlignment="CENTER" textFill="RED" />
                             </children>
                         </AnchorPane>
                     </content>

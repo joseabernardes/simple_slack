@@ -12,20 +12,14 @@ import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXRadioButton;
 import com.jfoenix.controls.JFXTextField;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -35,15 +29,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import model.Group;
 import model.Message;
+import model.PrivateChat;
 import model.User;
+import utils.Protocol;
 import views.main.list_message.ListMessageController;
 
 /**
@@ -61,11 +55,14 @@ public class MainController implements Initializable {
     private Pane pane;
     @FXML
     private StackPane main;
+    @FXML
+    private Label logged_user;
 
     private ListMessageController controller;
-    private ObservableList<Message> privateMessages;
 
     private User clientUser;
+
+    private PrintWriter out;
 
     /**
      * Initializes the controller class.
@@ -76,69 +73,53 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        for (int i = 0; i < 10; i++) {
-            Label lbl = new Label("# Grupo " + i);
+    }
+
+    public void addJoinedGroups(List<Group> list) {
+        for (Group group : list) {
+            Label lbl = new Label("# " + group.getName());
             lbl.getStyleClass().add("lbl-cell");
             groupList.getItems().add(lbl);
-            lbl.setUserData("grupo_" + i);
+            lbl.setUserData(group);
         }
         groupList.setOnMouseClicked((MouseEvent event) -> {
             onGroupListClickEvent(event);
         });
-        for (int i = 0; i < 4; i++) {
-            Label lbl = new Label("@ User " + i);
+    }
+
+    public void addPrivateChat(List<PrivateChat> list) {
+        for (PrivateChat chat : list) {
+            Label lbl = new Label("@ " + chat.getUser().getUsername());
             lbl.getStyleClass().add("lbl-cell");
             privateList.getItems().add(lbl);
-            lbl.setUserData("private_" + i);
+            lbl.setUserData(chat);
         }
         privateList.setOnMouseClicked((MouseEvent event) -> {
-            onDirectListClickEvent(event);
+            onPrivateListClickEvent(event);
         });
-        getMessages();
-
     }
 
-    public void onGroupListClickEvent(MouseEvent event) {
-        String groupID = groupList.getSelectionModel().getSelectedItem().getUserData().toString();
-        setChatPane(groupID, ListMessageController.GROUP);
+    private void onGroupListClickEvent(MouseEvent event) {
+        Group group = (Group) groupList.getSelectionModel().getSelectedItem().getUserData();
+        setChatPane(group.getMessages(), group.getName(), ListMessageController.GROUP);
     }
 
-    public void onDirectListClickEvent(MouseEvent event) {
-        String privateID = privateList.getSelectionModel().getSelectedItem().getUserData().toString();
-        setChatPane(privateID, ListMessageController.PRIVATE);
+    private void onPrivateListClickEvent(MouseEvent event) {
+        PrivateChat chat = (PrivateChat) privateList.getSelectionModel().getSelectedItem().getUserData();
+        setChatPane(chat.getMessages(), chat.getUser().getUsername(), ListMessageController.PRIVATE);
     }
 
-    public void getMessages() {
-        List<Message> mensagens = new ArrayList<Message>();
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola 1", true));
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola wpokr pogkpj go idjbshfvkbdsgkvjnv 2"));
-        mensagens.add(new Message("Joel", LocalDateTime.now(), "O sdhgosdhgbhsgliajsgbkmglkmglk la 3", true));
-        mensagens.add(new Message("Joel", LocalDateTime.now(), "sdigj psoOla 4"));
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola wpokr pogkpj go idjbshfvkbdsgkvjnv 5", true));
-        mensagens.add(new Message("Joel", LocalDateTime.now(), "O sdhgosdhgbhsgliajsgbkmglkmglk la 6"));
-        mensagens.add(new Message("Alfredo", LocalDateTime.now(), "Odspgj pg ijspg jfpb ojsgojgp jd pgsjgposjdgp sojgpsodjg psdojg psdog jspogj spdo gjpsog jspdogjspogjspogjspogjspogj psogjspdodsadkas+fokas+foas+fkas+gokas+fpksa+fpaskf+ gjpdfogjspgojspgojspgojsdpgojspgojsdpgosjdgposdjgpsodfjgpsodgjpjogla 7", true));
-        mensagens.add(new Message("Paulo", LocalDateTime.now(), "Ola 8"));
-        privateMessages = FXCollections.observableArrayList(mensagens);
-
-    }
-
-    public void setChatPane(String chatName, int typeOfChat) {
+    private void setChatPane(ObservableList<Message> messagesList, String name, int typeOfChat) {
         try {
-            List<Message> ss = new ArrayList<Message>();
-
-            for (int j = 0; j < 10; j++) {
-                ss.add(new Message(chatName, LocalDateTime.now(), "Olá " + j, new Random().nextBoolean()));
-            }
-
             if (controller == null) {//first time
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("list_message/ListMessage.fxml"));
                 Parent node = loader.load();
                 controller = loader.getController();
-                controller.setController(main, chatName, typeOfChat, FXCollections.observableArrayList(ss));
+                controller.setController(main, name, typeOfChat, messagesList);
                 pane.getChildren().clear();
                 pane.getChildren().add(node);
             } else {
-                controller.setController(main, chatName, typeOfChat, FXCollections.observableArrayList(ss));
+                controller.setController(main, name, typeOfChat, messagesList);
             }
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -209,7 +190,6 @@ public class MainController implements Initializable {
         dialog.show();
 
     }
-    int i = 8;
 
     @FXML
     private void onClickAddGroup(MouseEvent event) {
@@ -225,12 +205,17 @@ public class MainController implements Initializable {
             dialog.close();
         });
         content.setActions(cancel, ok);
-        boolean file = new Random().nextBoolean();
-        privateMessages.add(new Message("JOAQUIM", LocalDateTime.now(), "BEM VINDOS AMIGOS " + ++i, file));
-
         dialog.show();
 
     }
 
+    public void setController(String username, PrintWriter out) {
+        logged_user.setText(username);
+        clientUser = new User(username);
+        this.out = out;
+
+        out.println(Protocol.Client.Group.LIST_JOINED_GROUPS);
+        out.println(Protocol.Client.Private.LIST_PRIVATE_CHAT);
+    }
+
 }
-// name.charAt(0).toUppercase());

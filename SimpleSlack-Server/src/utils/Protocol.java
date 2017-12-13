@@ -5,7 +5,13 @@
  */
 package utils;
 
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class Protocol {
 
@@ -34,6 +40,9 @@ public class Protocol {
             public static final String SEND_FILE = "send_private_file";
             public static final String RECEIVE_FILE = "receive_private_file";
             public static final String LIST_LOGGED_USERS = "list_logged_users";
+            public static final String REMOVE_PRIVATE_CHAT = "remove_private_chat";
+            public static final String LIST_PRIVATE_CHAT = "list_private_chat";
+            public static final String LIST_PRIVATE_MSGS = "list_private_msgs";
         }
 
         public final class Group {
@@ -47,9 +56,9 @@ public class Protocol {
             public static final String REMOVE = "rem_group";
             public static final String LEAVE = "leave_group";
             public static final String LIST_GROUPS = "list_groups";
+            public static final String LIST_JOINED_GROUPS = "list_joined_groups";
             public static final String LIST_GROUP_MSGS = "list_group_msgs";
         }
-
 
     }
 
@@ -86,6 +95,11 @@ public class Protocol {
             //ERRORS 
             public static final String SEND_ERROR = "send_error";
             public static final String FILE_ERROR = "file_error";
+            public static final String REMOVE_PRIVATE_CHAT_SUCCESS = "remove_private_chat_success";
+            public static final String REMOVE_PRIVATE_CHAT_ERROR = "remove_private_chat_error";
+
+            public static final String LIST_PRIVATE_CHAT = "list_private_chat";
+            public static final String LIST_PRIVATE_MSGS = "list_private_msgs";
 
             public final class Error {
 
@@ -108,6 +122,7 @@ public class Protocol {
             public static final String LEAVE_SUCCESS = "group_leave_success";
             public static final String LIST_GROUPS = Client.Group.LIST_GROUP_MSGS;
             public static final String LIST_GROUP_MSGS = Client.Group.LIST_GROUP_MSGS;
+            public static final String LIST_JOINED_GROUPS = "list_joined_groups";
 
             //ERRORS
             public static final String SEND_ERROR = "send_error";
@@ -135,5 +150,32 @@ public class Protocol {
         object.put(Protocol.COMMAND, command);
         object.put(Protocol.DATA, data);
         return object.toJSONString();
+    }
+
+    public static String makeJSONResponse(String command, JSONObject values) {
+
+        return makeJSONResponse(command, values.toJSONString());
+    }
+
+    public static JSONObject parseJSONResponse(String input) {
+        JSONParser parser = new JSONParser();
+        JSONObject object;
+        try {
+            object = (JSONObject) parser.parse(input);
+        } catch (ParseException ex) {
+            object = null;
+        }
+        return object;
+    }
+
+    public static JSONArray parseJSONListResponse(String input) {
+        JSONParser parser = new JSONParser();
+        JSONArray array;
+        try {
+            array = (JSONArray) parser.parse(input);
+        } catch (ParseException ex) {
+            array = null;
+        }
+        return array;
     }
 }

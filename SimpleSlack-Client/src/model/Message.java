@@ -41,6 +41,9 @@ public class Message implements Comparable<Message> {
         obj.put("message", message);
         return obj.toJSONString();
     }
+    
+    
+    
 
 //    public static Message getInstance(String json) {
 //
@@ -95,17 +98,3 @@ public class Message implements Comparable<Message> {
         return this.date.compareTo(o.date);
     }
 }
-//
-//@Override
-//        public int compareTo(Comparator obj){
-//        int objNumDias = ((Evento)obj).getNumDias();
-//        
-//        if (numDias > objNumDias) {
-//            return 2;
-//        } else if (numDias < objNumDias) {
-//            return -2;
-//
-//        }else{
-//            return 0;
-//        }
-//    }

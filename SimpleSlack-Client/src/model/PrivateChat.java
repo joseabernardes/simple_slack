@@ -6,9 +6,10 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -17,22 +18,28 @@ import java.util.List;
 public class PrivateChat {
 
     private final User user;
-    private final List<Message> messages;
+    private ObservableList<Message> messages;
 
     public PrivateChat(User user) {
         this.user = user;
-        this.messages = Collections.synchronizedList(new ArrayList<Message>());
+        this.messages = FXCollections.observableArrayList(new ArrayList<Message>());
     }
 
     public User getUser() {
         return user;
     }
 
-    public List<Message> getMessages() {
+    public ObservableList<Message> getMessages() {
         return messages;
     }
 
     public boolean addMessage(Message message) {
         return this.messages.add(message);
     }
+
+    public static PrivateChat newPrivateChat(JSONObject obj) {
+        PrivateChat chat = new PrivateChat(new User(obj.get("name").toString()));
+        return chat;
+    }
+
 }

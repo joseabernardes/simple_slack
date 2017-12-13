@@ -9,27 +9,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PipedOutputStream;
-import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import model.Group;
+import model.PrivateChat;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import utils.Protocol;
 import views.auth.AuthController;
+import views.main.MainController;
 
-/*
- *
- * @author José Bernardes
- * 
- */
+
 public class ReceiverThread extends Thread {
 
     private final BufferedReader in;
     private String username;
     private final AuthController authController;
+    private MainController mainController;
 
     public ReceiverThread(InputStream in, AuthController controller) {
         super("ReceiverThread");
@@ -45,12 +44,11 @@ public class ReceiverThread extends Thread {
             JSONObject response;
             while ((inputLine = in.readLine()) != null) {
 
-                response = makeJsonResponse(inputLine);
+                response = Protocol.parseJSONResponse(inputLine);
 
                 if (response.get("command").equals(Protocol.Server.Group.JOIN_SUCCESS)) {
-                    String[] input = inputLine.split(" ");
-                    JSONObject data = makeJsonResponse(response.get("data").toString());
-                    new MulticastClientThread(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), username).start();
+                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
+                    new MulticastThread(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), username).start();
 
                 } else if (response.get("command").equals(Protocol.Server.Group.LIST_GROUP_MSGS)) {
                     String[] input = inputLine.split(" ", 3);
@@ -58,55 +56,77 @@ public class ReceiverThread extends Thread {
                         username = input[1];
                     }
 
-                } else if (response.get("command").equals("error")) {
-                    if (response.get("data").equals("username_or_password")) {
+                } else if (response.get("command").equals(Protocol.Server.Auth.LOGIN_ERROR)) {
+                    if (response.get("data").equals(Protocol.Server.Auth.Error.USER_PASS)) {
                         Platform.runLater(() -> {
                             authController.loginError("Your username or password is incorrect!");
                         });
                     }
 
                 } else if (response.get("command").equals(Protocol.Server.Auth.LOGIN_SUCCESS)) {
-
                     username = response.get("data").toString();
+                    Platform.runLater(() -> {
+                        try {
+                            mainController = authController.loginSuccess(username);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+
+                } else if (response.get("command").equals(Protocol.Server.Group.LIST_JOINED_GROUPS)) {
+                    JSONArray array = Protocol.parseJSONListResponse(response.get("data").toString());
+                    List<Group> groups = new ArrayList<Group>();
+                    for (Object object : array) {
+                        JSONObject ob = Protocol.parseJSONResponse((String) object);
+                        groups.add(Group.newGroup(ob));
+                    }
+                    Platform.runLater(() -> {
+                        mainController.addJoinedGroups(groups);
+                    });
+
+                } else if (response.get("command").equals(Protocol.Server.Private.LIST_PRIVATE_CHAT)) {
+                    JSONArray array = Protocol.parseJSONListResponse(response.get("data").toString());
+                    List<PrivateChat> chats = new ArrayList<PrivateChat>();
+                    for (Object object : array) {
+                        JSONObject ob = Protocol.parseJSONResponse((String) object);
+                        chats.add(PrivateChat.newPrivateChat(ob));
+                    }
+                    Platform.runLater(() -> {
+                        mainController.addPrivateChat(chats);
+                    });
+
+                } else if (response.get("command").equals(Protocol.Server.Auth.REGIST_SUCCESS)) {
+                    username = response.get("data").toString();
+                    Platform.runLater(() -> {
+                        authController.registSuccess(username);
+                    });
 
                 } else if (response.get("command").equals(Protocol.Server.Private.SEND_FILE)) {
 
-                    JSONObject data = makeJsonResponse(response.get("data").toString());
-                    new ClientFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
+                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
+                    new SendFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
 
                 } else if (response.get("command").equals(Protocol.Server.Group.SEND_FILE)) {
 
-                    JSONObject data = makeJsonResponse(response.get("data").toString());
-                    new ClientFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
+                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
+                    new SendFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
 
                 } else if (response.get("command").equals(Protocol.Server.Private.FILE_SENDED)) {
 
                 } else if (response.get("command").equals(Protocol.Server.Private.RECEIVE_FILE)) {
-                    JSONObject data = makeJsonResponse(response.get("data").toString());
-                    new ReceiveFileClient(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), System.getProperty("user.home")).start();
+                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
+                    new ReceiveFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), System.getProperty("user.home")).start();
 
                 } else if (response.get("command").equals(Protocol.Server.Group.RECEIVE_FILE)) {
-                    JSONObject data = makeJsonResponse(response.get("data").toString());
-                    new ReceiveFileClient(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), System.getProperty("user.home")).start();
+                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
+                    new ReceiveFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), System.getProperty("user.home")).start();
 
                 }
                 System.out.println(response);
             }
         } catch (IOException ex) {
-//            Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("Servidor desligado");
-//            System.exit(-1);
+            System.out.println("ReceiverThread Fechado");
         }
     }
 
-    private JSONObject makeJsonResponse(String input) {
-        JSONParser parser = new JSONParser();
-        JSONObject object = null;
-        try {
-            object = (JSONObject) parser.parse(input);
-        } catch (ParseException ex) {
-            Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return object;
-    }
 }

@@ -5,7 +5,7 @@
  */
 package views;
 
-import client.ClientSenderTCP;
+import client.SenderThread;
 import client.ReceiverThread;
 import com.jfoenix.controls.JFXDecorator;
 import java.io.IOException;
@@ -27,49 +27,57 @@ import views.auth.AuthController;
  */
 public class SimpleSlack extends Application {
 
+    private PipedOutputStream pipedSenderOutput;
+    private PipedInputStream pipedSenderInput;
+    private Socket clientSocket;
+    private JFXDecorator decorator;
+
     @Override
     public void start(Stage stage) throws Exception {
-        PipedOutputStream pipedSenderOutput = new PipedOutputStream();
-        PipedInputStream pipedSenderInput = new PipedInputStream(pipedSenderOutput);
+        stage.setTitle("Simple Slack");
+        stage.getIcons().add(new Image("/views/images/Slack_Square.png"));
         FXMLLoader loader = new FXMLLoader(getClass().getResource("auth/Auth.fxml"));
         Parent root = loader.load();
+
+        decorator = new JFXDecorator(stage, root, false, false, false);
+        decorator.setStyle("-fx-decorator-color: #39424bbd");
+        decorator.setCustomMaximize(true);
+
         AuthController controller = loader.getController();
-        controller.setController(pipedSenderOutput);
+        //I/O
+        pipedSenderOutput = new PipedOutputStream();
+        pipedSenderInput = new PipedInputStream(pipedSenderOutput);
+        controller.setController(pipedSenderOutput, decorator, stage);
         int port = 7777;
         String host = "127.0.0.1";
 
         try {
-            Socket clientSocket = new Socket(host, port);
+            clientSocket = new Socket(host, port);
             new ReceiverThread(clientSocket.getInputStream(), controller).start();
-            new ClientSenderTCP(clientSocket, pipedSenderInput).start();
-
+            new SenderThread(clientSocket, pipedSenderInput).start();
+            Scene scene = new Scene(decorator, 500, 600);
+            String uri = getClass().getResource("main/main.css").toExternalForm();
+            scene.getStylesheets().add(uri);
+            stage.setResizable(false);
+            stage.setScene(scene);
+            stage.show();
         } catch (UnknownHostException e) {
             System.err.println("Don't know about host:" + host + " .");
-//            System.exit(1);
         } catch (IOException e) {
             System.err.println("Couldn't get I/O for the connection to:" + host + " .");
-//            System.exit(1);
         }
 
-//        Parent root = FXMLLoader.load(getClass().getResource("main/Main.fxml"));
-        stage.setTitle("Simple Slack");
-        stage.getIcons().add(new Image("/views/images/Slack_Square.png"));
-//        Scene scene = new Scene(root);
-        JFXDecorator decorator = new JFXDecorator(stage, root);
-        decorator.setCustomMaximize(true);
-
-        Scene scene = new Scene(decorator, 500, 600);
-//                Scene scene = new Scene(decorator, 1000, 640);
-        String uri = getClass().getResource("main/main.css").toExternalForm();
-        scene.getStylesheets().add(uri);
-        stage.setResizable(false);
-        stage.setScene(scene);
-        stage.show();
     }
 
     @Override
     public void stop() throws Exception {
         System.out.println("Closing");
+        pipedSenderOutput.close();
+        pipedSenderInput.close();
+        if (clientSocket != null) {
+            clientSocket.close();
+        }
+        super.stop();
     }
 
     public static void main(String[] args) {
