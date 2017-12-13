@@ -16,16 +16,35 @@ import java.util.List;
  */
 public class User implements Serializable {
 
+    private int id;
     private String username;
     private final List<Group> groups;
-    private final List<PrivateChat> privateChat;
+    private  List<PrivateChat> privateChat;
 
-    public User(String username) {
+    public User(int id, String username) {
         this.username = username;
         this.groups = Collections.synchronizedList(new ArrayList<Group>());
         this.privateChat = Collections.synchronizedList(new ArrayList<PrivateChat>());
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setPrivateChat( List<PrivateChat> privateChat){
+        this.privateChat = privateChat;
+    }
+
+    public List<PrivateChat> getPrivateChat() {
+        return privateChat;
+    }
+    
+    
+    
     public String getUsername() {
         return username;
     }

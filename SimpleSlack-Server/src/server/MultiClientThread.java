@@ -204,8 +204,10 @@ public class MultiClientThread extends Thread {
                     }
                 }
             }
+            
+            
             if (loggedUser != null) {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Auth.LOGIN_SUCCESS, loggedUser.getUsername()));
+                out.println(Protocol.makeJSONResponse(Protocol.Server.Auth.LOGIN_SUCCESS, loggedUser.toString()));
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Auth.LOGIN_ERROR, Protocol.Server.Auth.Error.USER_PASS));
             }
@@ -254,12 +256,12 @@ public class MultiClientThread extends Thread {
 
     //PRIVATE
     private void sendPrivateMsg(String dataString) throws IOException {
-        String[] input = dataString.split(" ", 3);
-        if (input.length == 3) {
+        JSONObject data = Protocol.parseJSONResponse(dataString);
+        if (data.size() == 2) {
             User receiver = null;
             synchronized (users) {
                 for (User user : users) {
-                    if (user.getId() == Integer.valueOf(input[1])) {
+                    if (user.getId() == Integer.valueOf(data.get("id").toString())) {
                         receiver = user;
                         break;
                     }
@@ -267,9 +269,9 @@ public class MultiClientThread extends Thread {
             }
             if (receiver != null && receiver.getSocket() != null) { //se user existe e se tem socket(se tem login)
                 PrintWriter outReceiver = new PrintWriter(receiver.getSocket().getOutputStream(), true);
-                Message msg = new Message(loggedUser.getUsername(), LocalDateTime.now(), input[2]);
-
+                Message msg = new Message(loggedUser.getId(),loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString());
                 outReceiver.println(Protocol.makeJSONResponse(Protocol.Server.Private.RECEIVE_MSG, msg.toString()));
+                out.println(Protocol.makeJSONResponse(Protocol.Server.Private.RECEIVE_MSG, msg.toString()));
                 receiver.addMessage(loggedUser, msg);
                 loggedUser.addMessage(receiver, msg);
             } else {
@@ -415,7 +417,7 @@ public class MultiClientThread extends Thread {
             if (group != null) { //se grupo existe
 
                 byte[] buf = new byte[256];
-                Message msg = new Message(loggedUser.getUsername(), LocalDateTime.now(), input[2]);
+                Message msg = new Message(loggedUser.getId(),loggedUser.getUsername(), LocalDateTime.now(), input[2]);
                 String res = Protocol.makeJSONResponse(Protocol.Server.Group.SEND_MSG, msg.toString());
                 buf = res.getBytes();
                 DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());

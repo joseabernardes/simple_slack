@@ -38,7 +38,7 @@ public class PrivateChat {
     }
 
     public static PrivateChat newPrivateChat(JSONObject obj) {
-        PrivateChat chat = new PrivateChat(new User(obj.get("name").toString()));
+        PrivateChat chat = new PrivateChat(new User(Integer.valueOf(obj.get("id").toString()) ,obj.get("name").toString()));
         return chat;
     }
 

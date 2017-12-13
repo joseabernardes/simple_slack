@@ -15,13 +15,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import model.Group;
+import model.Message;
 import model.PrivateChat;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import utils.Protocol;
 import views.auth.AuthController;
 import views.main.MainController;
-
 
 public class ReceiverThread extends Thread {
 
@@ -64,10 +64,14 @@ public class ReceiverThread extends Thread {
                     }
 
                 } else if (response.get("command").equals(Protocol.Server.Auth.LOGIN_SUCCESS)) {
-                    username = response.get("data").toString();
+                    JSONObject ob = Protocol.parseJSONResponse(response.get("data").toString());
+
+                    username = ob.get("name").toString();
+                    int id = Integer.valueOf(ob.get("id").toString());
+
                     Platform.runLater(() -> {
                         try {
-                            mainController = authController.loginSuccess(username);
+                            mainController = authController.loginSuccess(id, username);
                         } catch (IOException ex) {
                             Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -99,6 +103,14 @@ public class ReceiverThread extends Thread {
                     username = response.get("data").toString();
                     Platform.runLater(() -> {
                         authController.registSuccess(username);
+                    });
+
+                } else if (response.get("command").equals(Protocol.Server.Private.RECEIVE_MSG)) {
+                    JSONObject ob = Protocol.parseJSONResponse(response.get("data").toString());
+                    Message.newMessage(ob);
+                   
+                    Platform.runLater(() -> {
+                        
                     });
 
                 } else if (response.get("command").equals(Protocol.Server.Private.SEND_FILE)) {

@@ -14,19 +14,22 @@ import org.json.simple.JSONObject;
  */
 public class Message implements Comparable<Message> {
 
+    private final int id;
     private final String username;
     private final LocalDateTime date;
     private final String message;
     private final boolean file;
 
-    public Message(String username, LocalDateTime date, String message) {
+    public Message(int id,String username, LocalDateTime date, String message) {
+        this.id = id;
         this.username = username;
         this.date = date;
         this.message = message;
         file = false;
     }
 
-    public Message(String username, LocalDateTime date, String message, boolean file) {
+    public Message(int id, String username,LocalDateTime date, String message, boolean file) {
+        this.id = id;
         this.username = username;
         this.date = date;
         this.message = message;
@@ -36,6 +39,7 @@ public class Message implements Comparable<Message> {
     @Override
     public String toString() {
         JSONObject obj = new JSONObject();
+        obj.put("id", id);
         obj.put("username", username);
         obj.put("date", date);
         obj.put("message", message);
@@ -74,8 +78,8 @@ public class Message implements Comparable<Message> {
             return new CuisineManagement();
         }
      */
-    public String getUsername() {
-        return username;
+    public int getId() {
+        return id;
     }
 
     public boolean isFile() {

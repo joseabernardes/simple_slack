@@ -14,20 +14,23 @@ import org.json.simple.JSONObject;
  */
 public class Message implements Comparable<Message> {
 
+    private final int id;
     private final String username;
     private final LocalDateTime date;
     private final String message;
     private final boolean file;
 
-    public Message(String username, LocalDateTime date, String message) {
-        this.username = username;
+    public Message(int id,String u, LocalDateTime date, String message) {
+        this.id = id;
         this.date = date;
         this.message = message;
+        this.username = u;
         file = false;
     }
 
-    public Message(String username, LocalDateTime date, String message, boolean file) {
-        this.username = username;
+    public Message(int id,String u, LocalDateTime date, String message, boolean file) {
+        this.id = id;
+        this.username = u;
         this.date = date;
         this.message = message;
         this.file = file;
@@ -36,11 +39,22 @@ public class Message implements Comparable<Message> {
     @Override
     public String toString() {
         JSONObject obj = new JSONObject();
+        obj.put("id", id);
         obj.put("username", username);
         obj.put("date", date);
         obj.put("message", message);
         return obj.toJSONString();
     }
+
+    public int getId() {
+        return id;
+    }
+    
+    
+    
+   public static Message newMessage(JSONObject obj){
+       return new Message(Integer.valueOf(obj.get("id").toString()),obj.get("username").toString(),LocalDateTime.parse(obj.get("date").toString()),obj.get("message").toString());
+   }
     
     
     

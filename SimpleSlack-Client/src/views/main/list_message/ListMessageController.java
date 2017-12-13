@@ -14,6 +14,7 @@ import com.jfoenix.controls.JFXTextField;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import model.Message;
 import org.json.simple.JSONObject;
+import utils.Protocol;
 
 /**
  * FXML Controller class
@@ -78,10 +80,13 @@ public class ListMessageController implements Initializable {
     @FXML
     private ImageView file_icon;
 
+    private PrintWriter out;
+    private int id_user;
+    
     public ListMessageController() {
     }
 
-    public void setController(StackPane main, String chatName, int typeOfChat, ObservableList<Message> messagesList) {
+    public void setController(StackPane main, String chatName, int id, int typeOfChat, ObservableList<Message> messagesList, PrintWriter out) {
         this.main = main;
         if (typeOfChat == ListMessageController.GROUP) {
             title.setText("Group Chat");
@@ -92,6 +97,8 @@ public class ListMessageController implements Initializable {
             leave_group.setVisible(false);
             edit_group.setVisible(false);
         }
+        this.out = out;
+        id_user = id;
 //        SortedList<Message> sr = messagesList.sorted();
         groupName.setText(chatName);
         messages.setItems(messagesList);
@@ -232,11 +239,16 @@ public class ListMessageController implements Initializable {
     private void sendMessage() {
         if (file != null) {
 
+        } else {
+            String text = textField.getText();
+            System.out.println("SEND: " + text + "TO: " + groupName.getText());
+            textField.setText("");
+            textField.setDisable(false);
+            JSONObject obj = new JSONObject();
+            obj.put("id",id_user);
+            obj.put("msg",text);
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Private.SEND_MSG, obj));            
         }
-        String text = textField.getText();
-        System.out.println("SEND: " + text + "TO: " + groupName.getText());
-        textField.setText("");
-        textField.setDisable(false);
     }
 
     @FXML

@@ -88,6 +88,8 @@ public class MainController implements Initializable {
     }
 
     public void addPrivateChat(List<PrivateChat> list) {
+        clientUser.setPrivateChat(list);
+        
         for (PrivateChat chat : list) {
             Label lbl = new Label("@ " + chat.getUser().getUsername());
             lbl.getStyleClass().add("lbl-cell");
@@ -99,27 +101,39 @@ public class MainController implements Initializable {
         });
     }
 
+    public void addMessageToPrivateChat(Message message){
+        for (PrivateChat object : clientUser.getPrivateChat()) {
+            if(object.getUser().getId() == message.getId()){
+                object.addMessage(message);
+                break;
+            }
+        }
+        
+    }
+    
+    
+    
     private void onGroupListClickEvent(MouseEvent event) {
         Group group = (Group) groupList.getSelectionModel().getSelectedItem().getUserData();
-        setChatPane(group.getMessages(), group.getName(), ListMessageController.GROUP);
+        setChatPane(group.getMessages(), group.getName(),group.getId(), ListMessageController.GROUP);
     }
 
     private void onPrivateListClickEvent(MouseEvent event) {
         PrivateChat chat = (PrivateChat) privateList.getSelectionModel().getSelectedItem().getUserData();
-        setChatPane(chat.getMessages(), chat.getUser().getUsername(), ListMessageController.PRIVATE);
+        setChatPane(chat.getMessages(), chat.getUser().getUsername(),chat.getUser().getId(), ListMessageController.PRIVATE);
     }
 
-    private void setChatPane(ObservableList<Message> messagesList, String name, int typeOfChat) {
+    private void setChatPane(ObservableList<Message> messagesList, String name, int user_id, int typeOfChat) {
         try {
             if (controller == null) {//first time
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("list_message/ListMessage.fxml"));
                 Parent node = loader.load();
                 controller = loader.getController();
-                controller.setController(main, name, typeOfChat, messagesList);
+                controller.setController(main, name,user_id, typeOfChat, messagesList, out);
                 pane.getChildren().clear();
                 pane.getChildren().add(node);
             } else {
-                controller.setController(main, name, typeOfChat, messagesList);
+                controller.setController(main, name,user_id, typeOfChat, messagesList, out);
             }
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -209,9 +223,9 @@ public class MainController implements Initializable {
 
     }
 
-    public void setController(String username, PrintWriter out) {
+    public void setController(int id ,String username, PrintWriter out) {
         logged_user.setText(username);
-        clientUser = new User(username);
+        clientUser = new User(id,username);
         this.out = out;
 
         out.println(Protocol.Client.Group.LIST_JOINED_GROUPS);
