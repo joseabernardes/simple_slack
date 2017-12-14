@@ -3,9 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group name="JAVA-SD">
-            <file>file:/C:/Users/José%20Bernardes/Google%20Drive/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/client/ReceiverThread.java</file>
-            <file>file:/C:/Users/José%20Bernardes/Google%20Drive/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/views/auth/AuthController.java</file>
-            <file>file:/C:/Users/José%20Bernardes/Google%20Drive/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/views/SimpleSlack.java</file>
+            <file>file:/C:/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/client/ReceiverThread.java</file>
+            <file>file:/C:/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/views/main/MainController.java</file>
+            <file>file:/C:/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/model/User.java</file>
+            <file>file:/C:/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/views/main/list_message/ListMessageController.java</file>
+            <file>file:/C:/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/model/PrivateChat.java</file>
+            <file>file:/C:/NetBeansProjects/JAVA-SD/SimpleSlack/SimpleSlack-Client/src/views/MainAplication.java</file>
         </group>
     </open-files>
 </project-private>
