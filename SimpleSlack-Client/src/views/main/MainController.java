@@ -129,11 +129,11 @@ public class MainController implements Initializable {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("list_message/ListMessage.fxml"));
                 Parent node = loader.load();
                 controller = loader.getController();
-                controller.setController(main, name,user_id, typeOfChat, messagesList, out);
+                controller.setController(main, name,user_id, typeOfChat, messagesList, out, clientUser);
                 pane.getChildren().clear();
                 pane.getChildren().add(node);
             } else {
-                controller.setController(main, name,user_id, typeOfChat, messagesList, out);
+                controller.setController(main, name,user_id, typeOfChat, messagesList, out,clientUser);
             }
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -227,9 +227,11 @@ public class MainController implements Initializable {
         logged_user.setText(username);
         clientUser = new User(id,username);
         this.out = out;
-
-        out.println(Protocol.Client.Group.LIST_JOINED_GROUPS);
-        out.println(Protocol.Client.Private.LIST_PRIVATE_CHAT);
+        
+        
+        
+        out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_JOINED_GROUPS,""));
+        out.println(Protocol.makeJSONResponse(Protocol.Client.Private.LIST_PRIVATE_CHAT,""));
     }
 
 }

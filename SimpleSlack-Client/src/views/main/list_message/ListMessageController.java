@@ -48,6 +48,7 @@ import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import model.Message;
+import model.User;
 import org.json.simple.JSONObject;
 import utils.Protocol;
 
@@ -82,23 +83,30 @@ public class ListMessageController implements Initializable {
 
     private PrintWriter out;
     private int id_user;
-    
+    private ObservableList<Message> messagesList;
+    private User client_user;
+    private int typeOfChat;
+
     public ListMessageController() {
     }
 
-    public void setController(StackPane main, String chatName, int id, int typeOfChat, ObservableList<Message> messagesList, PrintWriter out) {
+    public void setController(StackPane main, String chatName, int id, int typeOfChat, ObservableList<Message> messagesList, PrintWriter out, User client_user) {
         this.main = main;
         if (typeOfChat == ListMessageController.GROUP) {
             title.setText("Group Chat");
             leave_group.setVisible(true);
             edit_group.setVisible(true);
+
         } else {
             title.setText("Private Chat");
             leave_group.setVisible(false);
             edit_group.setVisible(false);
         }
+        this.typeOfChat = typeOfChat;
+        this.client_user = client_user;
         this.out = out;
         id_user = id;
+        this.messagesList = messagesList;
 //        SortedList<Message> sr = messagesList.sorted();
         groupName.setText(chatName);
         messages.setItems(messagesList);
@@ -241,13 +249,18 @@ public class ListMessageController implements Initializable {
 
         } else {
             String text = textField.getText();
+            JSONObject obj = new JSONObject();
+            obj.put("id", id_user);
+            obj.put("msg", text);
+            if (this.typeOfChat == ListMessageController.PRIVATE) {
+                messagesList.add(new Message(client_user.getId(), client_user.getUsername(), LocalDateTime.now(), text));
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Private.SEND_MSG, obj));
+            } else {
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Group.SEND_MSG, obj));
+            }
             System.out.println("SEND: " + text + "TO: " + groupName.getText());
             textField.setText("");
             textField.setDisable(false);
-            JSONObject obj = new JSONObject();
-            obj.put("id",id_user);
-            obj.put("msg",text);
-            out.println(Protocol.makeJSONResponse(Protocol.Client.Private.SEND_MSG, obj));            
         }
     }
 
