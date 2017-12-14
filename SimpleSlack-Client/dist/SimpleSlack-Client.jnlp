@@ -8,7 +8,11 @@
   </information>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+<<<<<<< HEAD
     <jar href="SimpleSlack-Client.jar" size="181405" download="eager" />
+=======
+    <jar href="SimpleSlack-Client.jar" size="181042" download="eager" />
+>>>>>>> 3c84bee66bcd9dbfc4752e530fc569d6febaf3da
     <jar href="lib\jfoenix.jar" size="2414497" download="eager" />
     <jar href="lib\json-simple-1.1.1.jar" size="23737" download="eager" />
   </resources>
