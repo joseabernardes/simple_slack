@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import model.Group;
-import model.Message;
-import model.PrivateChat;
+import model.GroupClient;
+import model.MessageClient;
+import model.PrivateChatClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import utils.Protocol;
@@ -41,98 +41,119 @@ public class ReceiverThread extends Thread {
     public void run() {
         try {
             String inputLine;
-            JSONObject response;
             while ((inputLine = in.readLine()) != null) {
+                JSONObject response = Protocol.parseJSONResponse(inputLine);
+                String command = response.get(Protocol.COMMAND).toString();
+                String dataString = response.get(Protocol.DATA).toString();//JSONObject or pure String
+                JSONObject dataObj;
+                JSONArray dataArray;
+                switch (command) {
+                    /**
+                     * AUTH
+                     */
+                    case Protocol.Server.Auth.LOGIN_SUCCESS:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        username = dataObj.get("name").toString();
+                        int id = Integer.valueOf(dataObj.get("id").toString());
 
-                response = Protocol.parseJSONResponse(inputLine);
-
-                if (response.get("command").equals(Protocol.Server.Group.JOIN_SUCCESS)) {
-                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
-                    new MulticastThread(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), username).start();
-
-                } else if (response.get("command").equals(Protocol.Server.Group.LIST_GROUP_MSGS)) {
-                    String[] input = inputLine.split(" ", 3);
-                    if (input.length == 2) {
-                        username = input[1];
-                    }
-
-                } else if (response.get("command").equals(Protocol.Server.Auth.LOGIN_ERROR)) {
-                    if (response.get("data").equals(Protocol.Server.Auth.Error.USER_PASS)) {
                         Platform.runLater(() -> {
-                            authController.loginError("Your username or password is incorrect!");
+                            try {
+                                mainController = authController.loginSuccess(id, username);
+                            } catch (IOException ex) {
+                                Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex); //error
+                            }
                         });
-                    }
+                        break;
+                    case Protocol.Server.Auth.LOGIN_ERROR:
 
-                } else if (response.get("command").equals(Protocol.Server.Auth.LOGIN_SUCCESS)) {
-                    JSONObject ob = Protocol.parseJSONResponse(response.get("data").toString());
+                        loginErrors(dataString);
 
-                    username = ob.get("name").toString();
-                    int id = Integer.valueOf(ob.get("id").toString());
+                        break;
+                    case Protocol.Server.Auth.REGIST_SUCCESS:
+                        Platform.runLater(() -> {
+                            authController.registError("");
+                            authController.registSuccess(dataString);
+                        });
+                        break;
 
-                    Platform.runLater(() -> {
-                        try {
-                            mainController = authController.loginSuccess(id, username);
-                        } catch (IOException ex) {
-                            Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex);
+                    case Protocol.Server.Auth.REGIST_ERROR:
+
+                        registErrors(dataString);
+                        break;
+
+                    /**
+                     * PRIVATE CHAT
+                     */
+                    case Protocol.Server.Private.LIST_PRIVATE_CHAT:
+                        dataArray = Protocol.parseJSONListResponse(dataString);
+                        List<PrivateChatClient> chats = new ArrayList<PrivateChatClient>();
+                        for (Object object : dataArray) {
+                            JSONObject obj = Protocol.parseJSONResponse(object.toString());
+                            chats.add(PrivateChatClient.newPrivateChat(obj));
                         }
-                    });
+                        Platform.runLater(() -> {
+                            mainController.addPrivateChats(chats);
+                        });
+                        break;
 
-                } else if (response.get("command").equals(Protocol.Server.Group.LIST_JOINED_GROUPS)) {
-                    JSONArray array = Protocol.parseJSONListResponse(response.get("data").toString());
-                    List<Group> groups = new ArrayList<Group>();
-                    for (Object object : array) {
-                        JSONObject ob = Protocol.parseJSONResponse((String) object);
-                        groups.add(Group.newGroup(ob));
-                    }
-                    Platform.runLater(() -> {
-                        mainController.addJoinedGroups(groups);
-                    });
+                    case Protocol.Server.Private.SEND_ERROR:
 
-                } else if (response.get("command").equals(Protocol.Server.Private.LIST_PRIVATE_CHAT)) {
-                    JSONArray array = Protocol.parseJSONListResponse(response.get("data").toString());
-                    List<PrivateChat> chats = new ArrayList<PrivateChat>();
-                    for (Object object : array) {
-                        JSONObject ob = Protocol.parseJSONResponse((String) object);
-                        chats.add(PrivateChat.newPrivateChat(ob));
-                    }
-                    Platform.runLater(() -> {
-                        mainController.addPrivateChat(chats);
-                    });
+                        if (dataString.equals(Protocol.Server.Private.Error.USER)) {
+                            Platform.runLater(() -> {
+                                mainController.displayError("Cannot send message, user not logged in");
+                            });
+                        }
 
-                } else if (response.get("command").equals(Protocol.Server.Auth.REGIST_SUCCESS)) {
-                    username = response.get("data").toString();
-                    Platform.runLater(() -> {
-                        authController.registSuccess(username);
-                    });
+                        break;
 
-                } else if (response.get("command").equals(Protocol.Server.Private.RECEIVE_MSG)) {
-                    JSONObject ob = Protocol.parseJSONResponse(response.get("data").toString());
-                    Message.newMessage(ob);
-                   
-                    Platform.runLater(() -> {
-                        
-                    });
+                    case Protocol.Server.Private.RECEIVE_MSG:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        Platform.runLater(() -> {
+                            mainController.addMessageToPrivateChat(MessageClient.newMessage(dataObj));
+                        });
+                        break;
+                    case Protocol.Server.Private.SEND_FILE:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString()).start();
+                        break;
+                    case Protocol.Server.Private.FILE_SENDED:
+                        //TODO
+                        break;
+                    case Protocol.Server.Private.RECEIVE_FILE:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
+                        break;
+                    /**
+                     * GROUP CHAT
+                     */
+                    case Protocol.Server.Group.JOIN_SUCCESS:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        new MulticastThread(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), username).start();
+                        break;
+                    case Protocol.Server.Group.LIST_GROUP_MSGS:
+                        //TODO
+                        break;
 
-                } else if (response.get("command").equals(Protocol.Server.Private.SEND_FILE)) {
+                    case Protocol.Server.Group.LIST_JOINED_GROUPS:
+                        dataArray = Protocol.parseJSONListResponse(dataString);
+                        List<GroupClient> groups = new ArrayList<GroupClient>();
+                        for (Object object : dataArray) {
+                            JSONObject ob = Protocol.parseJSONResponse(object.toString());
+                            groups.add(GroupClient.newGroup(ob));
+                        }
+                        Platform.runLater(() -> {
+                            mainController.addJoinedGroups(groups);
+                        });
+                        break;
 
-                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
-                    new SendFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
-
-                } else if (response.get("command").equals(Protocol.Server.Group.SEND_FILE)) {
-
-                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
-                    new SendFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("path").toString()).start();
-
-                } else if (response.get("command").equals(Protocol.Server.Private.FILE_SENDED)) {
-
-                } else if (response.get("command").equals(Protocol.Server.Private.RECEIVE_FILE)) {
-                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
-                    new ReceiveFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), System.getProperty("user.home")).start();
-
-                } else if (response.get("command").equals(Protocol.Server.Group.RECEIVE_FILE)) {
-                    JSONObject data = Protocol.parseJSONResponse(response.get("data").toString());
-                    new ReceiveFile(data.get("address").toString(), Integer.valueOf(data.get("port").toString()), data.get("name").toString(), Integer.valueOf(data.get("size").toString()), System.getProperty("user.home")).start();
-
+                    case Protocol.Server.Group.SEND_FILE:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString()).start();
+                        break;
+                    case Protocol.Server.Group.RECEIVE_FILE:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
+                        break;
                 }
                 System.out.println(response);
             }
@@ -141,4 +162,37 @@ public class ReceiverThread extends Thread {
         }
     }
 
+    private void loginErrors(String dataString) {
+        String result;
+        switch (dataString) {
+            case Protocol.Server.Auth.Error.USER_PASS:
+                result = "Your username or password is incorrect";
+                break;
+            default:
+                result = "Something went wrong, contact the admin";
+        }
+        Platform.runLater(() -> {
+            authController.loginError(result);
+        });
+    }
+
+    private void registErrors(String dataString) {
+        String result;
+        switch (dataString) {
+            case Protocol.Server.Auth.Error.PASS_MATCH:
+                result = "Password doesn't match";
+                break;
+            case Protocol.Server.Auth.Error.USER_EXISTS:
+                result = "Username already exists";
+                break;
+            case Protocol.Server.Auth.Error.REGEX:
+                result = "Use only word charaters and numbers | {1-20} characters";
+                break;
+            default:
+                result = "Something went wrong, contact the admin";
+        }
+        Platform.runLater(() -> {
+            authController.registError(result);
+        });
+    }
 }

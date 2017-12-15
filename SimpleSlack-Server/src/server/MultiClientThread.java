@@ -10,10 +10,10 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import model.Group;
-import model.Message;
-import model.PrivateChat;
-import model.User;
+import model.GroupServer;
+import model.MessageServer;
+import model.PrivateChatServer;
+import model.UserServer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import server.files.WriteGroups;
@@ -24,16 +24,16 @@ import utils.Protocol;
 public class MultiClientThread extends Thread {
 
     private final Socket socket;
-    private final List<Group> groups;
-    private final List<User> users;
-    private User loggedUser;
+    private final List<GroupServer> groups;
+    private final List<UserServer> users;
+    private UserServer loggedUser;
     private final Semaphore userSemaphore;
     private final Semaphore groupSemaphore;
     private final DatagramSocket socketUDP;
     private final String addressUDP;
     private final PrintWriter out;
 
-    public MultiClientThread(Socket socket, List<Group> groups, List<User> users, Semaphore userSemaphore, Semaphore groupSemaphore) throws IOException {
+    public MultiClientThread(Socket socket, List<GroupServer> groups, List<UserServer> users, Semaphore userSemaphore, Semaphore groupSemaphore) throws IOException {
         super("MultiClientThread");
         this.socket = socket;
         this.groups = groups;
@@ -85,7 +85,7 @@ public class MultiClientThread extends Thread {
                     String data = response.get(Protocol.DATA).toString();
 
                     if (command.equals(Protocol.Client.Private.SEND_MSG)) {
-                        sendPrivateMsg(inputLine);
+                        sendPrivateMsg(data);
 
                     } else if (inputLine.startsWith(Protocol.Client.Private.SEND_FILE)) {
 
@@ -174,6 +174,7 @@ public class MultiClientThread extends Thread {
                 socket.close();
                 out.close();
                 in.close();
+                new WriteUsers(userSemaphore, users).start();
                 System.out.println("Utilizador " + loggedUser.getUsername() + " desligou-se!");
 
             } else {
@@ -185,6 +186,7 @@ public class MultiClientThread extends Thread {
                 loggedUser.setSocket(null);
                 System.out.println("Utilizador " + loggedUser.getUsername() + " fez logout");
                 System.out.println("Utilizador " + loggedUser.getUsername() + " desligou-se!");
+                new WriteUsers(userSemaphore, users).start();
             } else {
                 System.out.println("Utilizador saiu sem fazer login");
             }
@@ -197,7 +199,7 @@ public class MultiClientThread extends Thread {
         JSONObject data = Protocol.parseJSONResponse(dataString);
         if (data.size() == 2) {
             synchronized (users) {
-                for (User user : users) {
+                for (UserServer user : users) {
                     if (user.getUsername().equals(data.get("username").toString()) && user.getSocket() == null) {
                         if (user.checkPassword(data.get("password").toString())) {
                             loggedUser = user;
@@ -225,7 +227,7 @@ public class MultiClientThread extends Thread {
             boolean exists = false;
             if (data.get("username").toString().matches("^[a-zA-Z0-9]{1,20}$") && data.get("password1").toString().matches("^[a-zA-Z0-9]{1,20}$")) {
                 synchronized (users) {
-                    for (User user : users) {
+                    for (UserServer user : users) {
                         if (user.getUsername().equals(data.get("username").toString())) {
                             exists = true;
                             break;
@@ -234,7 +236,7 @@ public class MultiClientThread extends Thread {
                 }
                 if (!exists) {
                     if (data.get("password1").toString().equals(data.get("password2").toString())) {
-                        users.add(new User(data.get("username").toString(), data.get("password1").toString()));
+                        users.add(new UserServer(data.get("username").toString(), data.get("password1").toString()));
                         new WriteUsers(userSemaphore, users).start();
                         out.println(Protocol.makeJSONResponse(Protocol.Server.Auth.REGIST_SUCCESS, data.get("username").toString()));
                     } else {
@@ -249,7 +251,6 @@ public class MultiClientThread extends Thread {
         } else {
             badCommand();
         }
-
     }
 
     private void badCommand() {
@@ -260,13 +261,9 @@ public class MultiClientThread extends Thread {
     private void sendPrivateMsg(String dataString) throws IOException {
         JSONObject data = Protocol.parseJSONResponse(dataString);
         if (data.size() == 2) {
-
-            User receiver = null;
+            UserServer receiver = null;
             synchronized (users) {
-                for (User user : users) {
-                    System.out.println(data);
-                    System.out.println(user.getId());
-                    System.out.println(Integer.valueOf(data.get("id").toString()));
+                for (UserServer user : users) {
                     if (user.getId() == Integer.valueOf(data.get("id").toString())) {
                         receiver = user;
                         break;
@@ -275,7 +272,7 @@ public class MultiClientThread extends Thread {
             }
             if (receiver != null && receiver.getSocket() != null) { //se user existe e se tem socket(se tem login)
                 PrintWriter outReceiver = new PrintWriter(receiver.getSocket().getOutputStream(), true);
-                Message msg = new Message(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString());
+                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString(), Integer.valueOf(data.get("id").toString()), false);
                 outReceiver.println(Protocol.makeJSONResponse(Protocol.Server.Private.RECEIVE_MSG, msg.toString()));
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Private.RECEIVE_MSG, msg.toString()));
                 receiver.addMessage(loggedUser, msg);
@@ -291,9 +288,9 @@ public class MultiClientThread extends Thread {
     private void sendPrivateFile(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 5) {
-            User receiver = null;
+            UserServer receiver = null;
             synchronized (users) {
-                for (User user : users) {
+                for (UserServer user : users) {
                     if (user.getId() == Integer.valueOf(input[1])) {
                         receiver = user;
                         break;
@@ -342,9 +339,9 @@ public class MultiClientThread extends Thread {
     private void removePrivateChat(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 2) {
-            User receiver = null;
+            UserServer receiver = null;
             synchronized (users) {
-                for (User user : users) {
+                for (UserServer user : users) {
                     if (user.getId() == Integer.valueOf(input[1])) {
                         receiver = user;
                         break;
@@ -366,7 +363,7 @@ public class MultiClientThread extends Thread {
     private void listPrivateChats() {
         JSONArray list = new JSONArray();
         synchronized (loggedUser.getPrivateChat()) {
-            for (PrivateChat chat : loggedUser.getPrivateChat()) {
+            for (PrivateChatServer chat : loggedUser.getPrivateChat()) {
                 list.add(chat.getUser().toString());
             }
         }
@@ -377,7 +374,7 @@ public class MultiClientThread extends Thread {
     private void listLoggedUsers() {
         JSONArray list = new JSONArray();
         synchronized (users) {
-            for (User user : users) {
+            for (UserServer user : users) {
                 if (user.getSocket() != null) { //se tem login
                     list.add(user.toString());
                 }
@@ -391,9 +388,9 @@ public class MultiClientThread extends Thread {
         if (input.length == 2) {
             JSONArray list = new JSONArray();
             synchronized (loggedUser.getPrivateChat()) {
-                for (PrivateChat chat : loggedUser.getPrivateChat()) {
+                for (PrivateChatServer chat : loggedUser.getPrivateChat()) {
                     if (chat.getUser().getId() == Integer.valueOf(input[1])) {
-                        for (Message msg : chat.getMessages()) {
+                        for (MessageServer msg : chat.getMessages()) {
                             list.add(msg);
                             break;
                         }
@@ -411,9 +408,9 @@ public class MultiClientThread extends Thread {
     private void sendGroupMsg(String dataString) throws IOException {
         String[] input = dataString.split(" ", 3);
         if (input.length == 3) {
-            Group group = null;
+            GroupServer group = null;
             synchronized (loggedUser.getGroups()) {
-                for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
                     if (x.getId() == Integer.valueOf(input[1])) {
                         group = x;
                         break;
@@ -423,7 +420,7 @@ public class MultiClientThread extends Thread {
             if (group != null) { //se grupo existe
 
                 byte[] buf = new byte[256];
-                Message msg = new Message(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), input[2]);
+                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), input[2], Integer.valueOf(input[1]), false);
                 String res = Protocol.makeJSONResponse(Protocol.Server.Group.SEND_MSG, msg.toString());
                 buf = res.getBytes();
                 DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
@@ -441,9 +438,9 @@ public class MultiClientThread extends Thread {
     private void sendGroupFile(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 5) {
-            Group group = null;
+            GroupServer group = null;
             synchronized (loggedUser.getGroups()) {
-                for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
                     if (x.getId() == Integer.valueOf(input[1])) {
                         group = x;
                         break;
@@ -496,7 +493,7 @@ public class MultiClientThread extends Thread {
             //find if group name exists
             boolean exists = false;
             synchronized (groups) {
-                for (Group x : groups) {
+                for (GroupServer x : groups) {
                     if (x.getName().equals(input[1])) {
                         exists = true;
                         break;
@@ -506,7 +503,7 @@ public class MultiClientThread extends Thread {
             if (!exists) {
                 // create group
 
-                Group group = new Group(GetPort.getFreeAvaliablePort(groups), input[1], addressUDP);
+                GroupServer group = new GroupServer(GetPort.getFreeAvaliablePort(groups), input[1], addressUDP);
                 groups.add(group);
                 group.setServerPort(GetPort.getFreeAvaliablePort(groups)); //para nao retornar a mesma porta que em cima //FAZER DEBUG PARA VER
                 //SE É NECESSARIO O -1 NO CONSTRUTOR
@@ -526,9 +523,9 @@ public class MultiClientThread extends Thread {
     private void joinGroup(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 2) {
-            Group group = null;
+            GroupServer group = null;
             synchronized (groups) {
-                for (Group x : groups) {
+                for (GroupServer x : groups) {
                     if (x.getId() == Integer.valueOf(input[1])) {
                         group = x;
                         break;
@@ -550,9 +547,9 @@ public class MultiClientThread extends Thread {
     private void editGroup(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 3) {
-            Group group = null;
+            GroupServer group = null;
             synchronized (groups) {
-                for (Group x : groups) {
+                for (GroupServer x : groups) {
                     if (x.getId() == Integer.valueOf(input[1])) {
                         group = x;
                         break;
@@ -574,9 +571,9 @@ public class MultiClientThread extends Thread {
     private void removeGroup(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 2) {
-            Group group = null;
+            GroupServer group = null;
             synchronized (groups) {
-                for (Group x : groups) {
+                for (GroupServer x : groups) {
                     if (x.getId() == Integer.valueOf(input[1])) {
                         group = x;
                         break;
@@ -604,9 +601,9 @@ public class MultiClientThread extends Thread {
     private void leaveGroup(String dataString) throws IOException {
         String[] input = dataString.split(" ");
         if (input.length == 2) {
-            Group group = null;
+            GroupServer group = null;
             synchronized (loggedUser.getGroups()) {
-                for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
                     if (x.getId() == Integer.valueOf(input[1])) {
                         group = x;
                         break;
@@ -634,7 +631,7 @@ public class MultiClientThread extends Thread {
     private void listGroups() {
         JSONArray list = new JSONArray();
         synchronized (groups) {
-            for (Group group : groups) {
+            for (GroupServer group : groups) {
                 if (!group.getUsers().contains(loggedUser)) {
                     list.add(group.toString());
                 }
@@ -646,7 +643,7 @@ public class MultiClientThread extends Thread {
     private void listJoinedGroups() {
         JSONArray list = new JSONArray();
         synchronized (loggedUser.getGroups()) {
-            for (Group group : loggedUser.getGroups()) {
+            for (GroupServer group : loggedUser.getGroups()) {
                 list.add(group.toString());
             }
 
@@ -658,9 +655,9 @@ public class MultiClientThread extends Thread {
     private void listGroupMsgs(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 2) {
-            Group group = null;
+            GroupServer group = null;
             synchronized (loggedUser.getGroups()) {
-                for (Group x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
                     if (x.getId() == Integer.valueOf(input[1])) {
                         group = x;
                         break;
@@ -668,10 +665,10 @@ public class MultiClientThread extends Thread {
                 }
             }
             if (group != null) { //se fez join
-                List<Message> msgs = group.getMessages();
+                List<MessageServer> msgs = group.getMessages();
                 JSONArray list = new JSONArray();
                 synchronized (msgs) {
-                    for (Message msg : msgs) {
+                    for (MessageServer msg : msgs) {
                         list.add(msg.toString());
                     }
                 }

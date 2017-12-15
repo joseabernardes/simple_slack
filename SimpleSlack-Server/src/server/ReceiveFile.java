@@ -16,8 +16,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import model.Group;
-import model.User;
+import model.GroupServer;
+import model.UserServer;
 import org.json.simple.JSONObject;
 import utils.Protocol;
 
@@ -31,11 +31,11 @@ public class ReceiveFile extends Thread {
     private ServerSocket socket;
     private String fileName;
     private int size;
-    private User receiver;
-    private Group group;
+    private UserServer receiver;
+    private GroupServer group;
     private DatagramSocket socketUDP;
     private int type;
-    private User sender;
+    private UserServer sender;
 
     /**
      * Constructor for Private receiver
@@ -46,7 +46,7 @@ public class ReceiveFile extends Thread {
      * @param receiver
      * @param sender
      */
-    public ReceiveFile(int port, String fileName, int size, User receiver, User sender) {
+    public ReceiveFile(int port, String fileName, int size, UserServer receiver, UserServer sender) {
         try {
             socket = new ServerSocket(port);
             this.fileName = fileName;
@@ -69,7 +69,7 @@ public class ReceiveFile extends Thread {
      * @param socketUDP
      * @param sender
      */
-    public ReceiveFile(int port, String fileName, int size, Group group, User sender, DatagramSocket socketUDP) {
+    public ReceiveFile(int port, String fileName, int size, GroupServer group, UserServer sender, DatagramSocket socketUDP) {
         try {
             socket = new ServerSocket(port);
             this.fileName = fileName;

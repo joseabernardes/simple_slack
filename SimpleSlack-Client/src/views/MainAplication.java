@@ -6,35 +6,16 @@
 package views;
 
 import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXHamburger;
 import com.jfoenix.controls.JFXListView;
-import com.jfoenix.controls.JFXRippler;
-import com.jfoenix.controls.JFXRippler.RipplerMask;
-import com.jfoenix.controls.JFXRippler.RipplerPos;
 import com.jfoenix.controls.JFXScrollPane;
 import com.jfoenix.svg.SVGGlyph;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 /**

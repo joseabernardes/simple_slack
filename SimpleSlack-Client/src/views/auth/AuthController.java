@@ -72,12 +72,16 @@ public class AuthController implements Initializable {
         logErrors.setText(error);
     }
 
-    public MainController loginSuccess(int id ,String username) throws IOException {
+    public void registError(String error) {
+        registErrors.setText(error);
+    }
+
+    public MainController loginSuccess(int id, String username) throws IOException {
         FXMLLoader loader = new FXMLLoader(MainController.class.getResource("Main.fxml"));
         Parent root = loader.load();
 
         MainController controller = loader.getController();
-        controller.setController(id ,username, out);
+        controller.setController(id, username, out);
         decorator.setContent(root);
         decorator.setStyle("-fx-decorator-color:  #3c2539");
         stage.setWidth(1000);

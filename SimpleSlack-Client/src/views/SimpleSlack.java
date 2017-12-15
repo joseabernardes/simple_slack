@@ -7,17 +7,22 @@ package views;
 
 import client.SenderThread;
 import client.ReceiverThread;
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDecorator;
+import com.jfoenix.controls.JFXDialog;
+import com.jfoenix.controls.JFXDialogLayout;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import views.auth.AuthController;
 
@@ -39,7 +44,7 @@ public class SimpleSlack extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("auth/Auth.fxml"));
         Parent root = loader.load();
 
-        decorator = new JFXDecorator(stage, root, false, false, false);
+        decorator = new JFXDecorator(stage, root, false, false, true);
         decorator.setStyle("-fx-decorator-color: #39424bbd");
         decorator.setCustomMaximize(true);
 
@@ -61,10 +66,10 @@ public class SimpleSlack extends Application {
             stage.setResizable(false);
             stage.setScene(scene);
             stage.show();
-        } catch (UnknownHostException e) {
-            System.err.println("Don't know about host:" + host + " .");
+
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to:" + host + " .");
+
+            System.err.println("Don't know about host:" + host + " .");
         }
 
     }

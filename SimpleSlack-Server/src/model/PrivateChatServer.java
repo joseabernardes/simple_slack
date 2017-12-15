@@ -5,6 +5,7 @@
  */
 package model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,25 +15,25 @@ import java.util.List;
  *
  * @author José Bernardes
  */
-public class PrivateChat {
+public class PrivateChatServer implements Serializable {
 
-    private final User user;
-    private final List<Message> messages;
+    private final UserServer user;
+    private final List<MessageServer> messages;
 
-    public PrivateChat(User user) {
+    public PrivateChatServer(UserServer user) {
         this.user = user;
-        this.messages = Collections.synchronizedList(new ArrayList<Message>());
+        this.messages = Collections.synchronizedList(new ArrayList<MessageServer>());
     }
 
-    public User getUser() {
+    public UserServer getUser() {
         return user;
     }
 
-    public List<Message> getMessages() {
+    public List<MessageServer> getMessages() {
         return messages;
     }
 
-    public boolean addMessage(Message message) {
+    public boolean addMessage(MessageServer message) {
         return this.messages.add(message);
     }
 }

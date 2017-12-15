@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import model.Group;
-import model.User;
+import model.GroupServer;
+import model.UserServer;
 
 /**
  * <h3>
@@ -36,9 +36,9 @@ import model.User;
 public class WriteGroups extends Thread{
 
     private final Semaphore semaphore;
-    private final List<Group> groups;
+    private final List<GroupServer> groups;
 
-    public WriteGroups(Semaphore semaphore, List<Group> groups) {
+    public WriteGroups(Semaphore semaphore, List<GroupServer> groups) {
         this.semaphore = semaphore;
         this.groups = groups;
     }
@@ -50,7 +50,8 @@ public class WriteGroups extends Thread{
             File ficheiro = new File("src/groups.txt");
             ObjectOutputStream output;
             output = new ObjectOutputStream(new FileOutputStream(ficheiro));
-            output.writeObject((List<Group>) groups);
+            output.writeObject((List<GroupServer>) groups);
+            System.out.println("Groups gravados");
         } catch (IOException | InterruptedException ex) {
             System.out.println("Erro a gravar");
         } finally {

@@ -9,11 +9,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.json.simple.JSONObject;
 
-public class Group implements Serializable {
+public class GroupServer implements Serializable {
 
     private static int ID = 0;
 
@@ -22,28 +20,24 @@ public class Group implements Serializable {
     private int serverPort;
     private String name;
     private String address;
-    private ObservableList<Message> messages;
-    private final List<User> users;
+    private final List<MessageServer> messages;
+    private final List<UserServer> users;
 
-    public Group(int port, String name, String address) {
+    public GroupServer(int port, String name, String address) {
         this.id = ++ID;
         this.port = port;
         this.name = name;
         this.address = address;
         serverPort = -1;
-        this.messages = FXCollections.observableArrayList(new ArrayList<Message>());
-        this.users = Collections.synchronizedList(new ArrayList<User>());
+        this.messages = Collections.synchronizedList(new ArrayList<MessageServer>());
+        this.users = Collections.synchronizedList(new ArrayList<UserServer>());
     }
 
-    public List<User> getUsers() {
+    public List<UserServer> getUsers() {
         return users;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public boolean addUser(User user) {
+    public boolean addUser(UserServer user) {
         return this.users.add(user);
     }
 
@@ -52,7 +46,7 @@ public class Group implements Serializable {
 
     }
 
-    public boolean removeUser(User user) {
+    public boolean removeUser(UserServer user) {
         return this.users.remove(user);
     }
 
@@ -76,11 +70,11 @@ public class Group implements Serializable {
         this.serverPort = serverPort;
     }
 
-    public boolean addMessage(Message message) {
+    public boolean addMessage(MessageServer message) {
         return messages.add(message);
     }
 
-    public ObservableList<Message> getMessages() {
+    public List<MessageServer> getMessages() {
         return this.messages;
     }
 
@@ -97,7 +91,7 @@ public class Group implements Serializable {
     }
 
     public static void setID(int id) {
-        Group.ID = id;
+        GroupServer.ID = id;
     }
 
     public int getId() {
@@ -112,12 +106,6 @@ public class Group implements Serializable {
         obj.put("id", id);
         obj.put("name", name);
         return obj.toJSONString();
-    }
-
-    public static Group newGroup(JSONObject obj) {
-        Group group = new Group(Integer.valueOf(obj.get("port").toString()), obj.get("name").toString(), obj.get("address").toString());
-        group.setId(Integer.valueOf(obj.get("id").toString()));
-        return group;
     }
 
 }

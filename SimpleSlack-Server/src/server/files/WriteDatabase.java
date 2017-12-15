@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import model.Database;
+import model.GroupServer;
 import model.UserServer;
 
 /**
@@ -32,30 +34,32 @@ import model.UserServer;
  * Classe que representa um Thread que guarda o stock de produtos no ficheiro
  * </p>
  */
-public class WriteUsers extends Thread{
+public class WriteDatabase extends Thread {
 
     private final Semaphore semaphore;
-    private final List<UserServer> users;
+    private final Database database;
 
-    public WriteUsers(Semaphore semaphore, List<UserServer> users) {
+    public WriteDatabase(Semaphore semaphore, Database database) {
         this.semaphore = semaphore;
-        this.users = users;
+        this.database = database;
     }
 
     @Override
     public void run() {
-        try {
-            semaphore.acquire();
-            File ficheiro = new File("src/users.txt");
-            ObjectOutputStream output;
-            output = new ObjectOutputStream(new FileOutputStream(ficheiro));
-            output.writeObject((List<UserServer>) users);
-            System.out.println("Ficheiro \"users\" atualizado");
-        } catch (IOException | InterruptedException ex) {
-            System.out.println("Erro a gravar users");
-            System.out.println(ex);
-        } finally {
-            semaphore.release();
+        while (true) {
+            try {
+                Thread.sleep(10000);
+                semaphore.acquire();
+                File ficheiro = new File("database.txt");
+                ObjectOutputStream output;
+                output = new ObjectOutputStream(new FileOutputStream(ficheiro));
+                output.writeObject((Database) database);
+                System.out.println("Database gravada");
+            } catch (IOException | InterruptedException ex) {
+                System.out.println("Erro a gravar database");
+            } finally {
+                semaphore.release();
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import model.User;
+import model.UserClient;
 import org.json.simple.JSONObject;
 
 public class ReceiveFile extends Thread {
@@ -21,7 +21,7 @@ public class ReceiveFile extends Thread {
     private Socket socket;
     private String fileName;
     private int size;
-    private User sender;
+    private UserClient sender;
     private String destinationPath;
 
     public ReceiveFile(String host, int port, String fileName, int size, String destinationPath) {

@@ -18,23 +18,23 @@ import utils.Protocol;
  *
  * @author José Bernardes
  */
-public class User implements Serializable {
+public class UserServer implements Serializable {
 
     private static int ID = 0;
     private final int id;
     private String username;
     private String password;
     private transient Socket socket;
-    private final List<Group> groups;
-    private final List<PrivateChat> privateChat;
+    private final List<GroupServer> groups;
+    private List<PrivateChatServer> privateChat;
 
-    public User(String username, String password) {
+    public UserServer(String username, String password) {
         this.id = ++ID;
         this.username = username;
         this.password = BCrypt.hashpw(password, BCrypt.gensalt());
         this.socket = null;
-        this.groups = Collections.synchronizedList(new ArrayList<Group>());
-        this.privateChat = Collections.synchronizedList(new ArrayList<PrivateChat>());
+        this.groups = Collections.synchronizedList(new ArrayList<GroupServer>());
+        this.privateChat = Collections.synchronizedList(new ArrayList<PrivateChatServer>());
     }
 
     public Socket getSocket() {
@@ -61,15 +61,15 @@ public class User implements Serializable {
         this.password = BCrypt.hashpw(password, BCrypt.gensalt());
     }
 
-    public boolean addGroup(Group group) {
+    public boolean addGroup(GroupServer group) {
         return this.groups.add(group);
     }
 
-    public boolean removeGroup(Group group) {
+    public boolean removeGroup(GroupServer group) {
         return this.groups.remove(group);
     }
 
-    public List<Group> getGroups() {
+    public List<GroupServer> getGroups() {
         return this.groups;
     }
 
@@ -78,9 +78,9 @@ public class User implements Serializable {
      * @param user
      * @return NULL IF NOT EXISTS
      */
-    public List<Message> getMessages(User user) {
+    public List<MessageServer> getMessages(UserServer user) {
         synchronized (privateChat) {
-            for (PrivateChat privateChat1 : privateChat) {
+            for (PrivateChatServer privateChat1 : privateChat) {
                 if (privateChat1.getUser().equals(user)) {
                     return privateChat1.getMessages();
                 }
@@ -95,23 +95,22 @@ public class User implements Serializable {
      * @param message
      * @return FALSE IF NOT ADD
      */
-    public boolean addMessage(User user, Message message) {
+    public boolean addMessage(UserServer user, MessageServer message) {
         synchronized (privateChat) {
-            for (PrivateChat privateChat1 : privateChat) {
+            for (PrivateChatServer privateChat1 : privateChat) {
                 if (privateChat1.getUser().equals(user)) {
                     return privateChat1.addMessage(message);
                 }
             }
-            PrivateChat chat = new PrivateChat(user);
+            PrivateChatServer chat = new PrivateChatServer(user);
             privateChat.add(chat);
-            chat.addMessage(message);
+            return chat.addMessage(message);
         }
-        return false;
     }
 
-    public void removePrivateChat(User user) {
+    public void removePrivateChat(UserServer user) {
         synchronized (privateChat) {
-            for (PrivateChat privateChat1 : privateChat) {
+            for (PrivateChatServer privateChat1 : privateChat) {
                 if (privateChat1.getUser().equals(user)) {
                     privateChat.remove(privateChat1);
                     return;
@@ -120,8 +119,12 @@ public class User implements Serializable {
         }
     }
 
-    public List<PrivateChat> getPrivateChat() {
+    public List<PrivateChatServer> getPrivateChat() {
         return privateChat;
+    }
+
+    public void setPrivateChat(List<PrivateChatServer> privateChat) {
+        this.privateChat = privateChat;
     }
 
     public int getId() {
@@ -129,19 +132,19 @@ public class User implements Serializable {
     }
 
     public static void setID(int id) {
-        User.ID = id;
+        UserServer.ID = id;
     }
 
     @Override
     public String toString() {
         JSONObject obj = new JSONObject();
         obj.put("name", username);
-        obj.put("id", id);
+        obj.put("id", String.valueOf(id));
         return obj.toJSONString();
     }
 
     //RTEMOVER
-    public void addPrivateChat(User user) {
-        privateChat.add(new PrivateChat(user));
+    public void addPrivateChat(UserServer user) {
+        privateChat.add(new PrivateChatServer(user));
     }
 }

@@ -8,7 +8,7 @@ package utils;
 import java.util.Iterator;
 import java.util.List;
 import libs.portFinder.AvailablePortFinder;
-import model.Group;
+import model.GroupServer;
 
 /**
  *
@@ -17,14 +17,14 @@ import model.Group;
 public class GetPort {
 
     // 2, 3 , 4 ,1 ,5
-    public static int getFreeAvaliablePort(List<Group> groups) {
+    public static int getFreeAvaliablePort(List<GroupServer> groups) {
         int port = AvailablePortFinder.getNextAvailable(); //1
         boolean find = true;
         while (find) {
             find = false;
-            Iterator<Group> iterator = groups.iterator();
+            Iterator<GroupServer> iterator = groups.iterator();
             while (iterator.hasNext() && !find) {
-                Group g = iterator.next();
+                GroupServer g = iterator.next();
                 if (g.getPort() == port || g.getServerPort() == port) {
                     find = true;
                 }

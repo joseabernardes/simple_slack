@@ -9,28 +9,17 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
 import com.jfoenix.controls.JFXListView;
-import com.jfoenix.controls.JFXSnackbar;
 import com.jfoenix.controls.JFXTextField;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -47,8 +36,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import model.Message;
-import model.User;
+import model.MessageClient;
+import model.UserClient;
 import org.json.simple.JSONObject;
 import utils.Protocol;
 
@@ -63,7 +52,7 @@ public class ListMessageController implements Initializable {
     public static final int GROUP = 2;
 
     @FXML
-    private JFXListView<Message> messages;
+    private JFXListView<MessageClient> messages;
     @FXML
     private JFXTextField textField;
     @FXML
@@ -83,14 +72,14 @@ public class ListMessageController implements Initializable {
 
     private PrintWriter out;
     private int id_user;
-    private ObservableList<Message> messagesList;
-    private User client_user;
+    private ObservableList<MessageClient> messagesList;
+    private UserClient client_user;
     private int typeOfChat;
 
     public ListMessageController() {
     }
 
-    public void setController(StackPane main, String chatName, int id, int typeOfChat, ObservableList<Message> messagesList, PrintWriter out, User client_user) {
+    public void setController(StackPane main, String chatName, int id, int typeOfChat, ObservableList<MessageClient> messagesList, PrintWriter out, UserClient client_user) {
         this.main = main;
         if (typeOfChat == ListMessageController.GROUP) {
             title.setText("Group Chat");
@@ -115,7 +104,7 @@ public class ListMessageController implements Initializable {
 
     }
 
-    static class Cell extends ListCell<Message> {
+    static class Cell extends ListCell<MessageClient> {
 
         private final AnchorPane pane;
         private ImageView avatar;
@@ -168,7 +157,7 @@ public class ListMessageController implements Initializable {
         }
 
         @Override
-        protected void updateItem(Message item, boolean empty) {
+        protected void updateItem(MessageClient item, boolean empty) {
             super.updateItem(item, empty);
             setText(null);
             setGraphic(null);
@@ -253,7 +242,7 @@ public class ListMessageController implements Initializable {
             obj.put("id", id_user);
             obj.put("msg", text);
             if (this.typeOfChat == ListMessageController.PRIVATE) {
-                messagesList.add(new Message(client_user.getId(), client_user.getUsername(), LocalDateTime.now(), text));
+//                messagesList.add(new MessageClient(client_user.getId(), client_user.getUsername(), LocalDateTime.now(), text)); ERRADO
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Private.SEND_MSG, obj));
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Group.SEND_MSG, obj));
@@ -325,21 +314,21 @@ public class ListMessageController implements Initializable {
         FileChooser fc = new FileChooser();
         fc.setInitialDirectory(new File(System.getProperty("user.home")));
         File selectedFile = fc.showOpenDialog(null);
-//        JFXButton bt = (JFXButton) event.getSource();
         file_icon.getStyleClass().clear();
 //        JFXSnackbar snack = new JFXSnackbar(main);
         if (selectedFile != null) {
             file = makeJson(selectedFile.getAbsolutePath(), selectedFile.getName(), selectedFile.length());
             System.out.println(file);
             file_icon.getStyleClass().add("file_not_empty");
-//            bt.getTooltip().setText(selectedFile.getName());
+        
 //            snack.show("Ficheiro \"" + selectedFile.getName() + "\" anexado á mensagem", 3000);
             textField.setText("Send file \"" + selectedFile.getName() + "\"");
             textField.setDisable(true);
         } else {
             System.out.println("null");
+            file = null;
             file_icon.getStyleClass().add("file_empty");
-//            bt.getTooltip().setText("Sem Anexo");
+          
 //            snack.show("Nenhum anexo selecionado", 2000);
             textField.setText("");
             textField.setDisable(false);
