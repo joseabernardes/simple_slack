@@ -16,24 +16,26 @@ import utils.Protocol;
 import views.main.MainController;
 
 public class MulticastThread extends Thread {
-
+    
     private final String address;
     private final String username;
     private final int port;
     private boolean receive;
     private GroupClient group;
-
-    public MulticastThread(String address, int port, String username, GroupClient group) {
+    private MainController mainController;
+    
+    public MulticastThread(String address, int port, String username, GroupClient group, MainController mainController) {
         this.address = address;
         this.port = port;
         this.receive = true;
         this.username = username;
         this.group = group;
+        this.mainController = mainController;
     }
-
+    
     @Override
     public void run() {
-
+        
         try {
             System.out.println("UDP CLIENT:" + port);
             MulticastSocket socket = new MulticastSocket(port);
@@ -50,14 +52,27 @@ public class MulticastThread extends Thread {
                     response = Protocol.parseJSONResponse(received);
                     if (response.get("command").equals(Protocol.Server.Group.LEAVE_SUCCESS)) {
                         if (response.get("data").equals(username)) {
+                            Platform.runLater(() -> {
+                                mainController.leaveSuccess(group);
+                            });
+                            
                             receive = false;
                         }
+                    } else if (response.get("command").equals(Protocol.Server.Group.LEAVE_ERROR)) {
+                        
+                        Platform.runLater(() -> {
+                            mainController.displaySnackBar("The group that you are trying to leave doen't exists");
+                        });
+                        
+                    } else if (response.get("command").equals(Protocol.Server.Group.SEND_MSG)) {
+                        
+                        String x = response.get("data").toString();
+                        Platform.runLater(() -> {
+                            group.addMessage(MessageClient.newMessage(Protocol.parseJSONResponse(x)));
+                        });
+                        
                     }
-                    String x = response.get("data").toString();
-                    Platform.runLater(() -> {
-                        group.addMessage(MessageClient.newMessage(Protocol.parseJSONResponse(x)));
-                    });
-
+                    
                 } catch (IOException ex) {
                     receive = false;
                     Logger.getLogger(MulticastThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -69,7 +84,7 @@ public class MulticastThread extends Thread {
             Logger.getLogger(MulticastThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     private JSONObject makeJsonResponse(String input) {
         JSONParser parser = new JSONParser();
         JSONObject object = null;

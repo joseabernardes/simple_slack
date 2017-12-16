@@ -183,7 +183,7 @@ public class ReceiverThread extends Thread {
                         dataObj = Protocol.parseJSONResponse(dataString);
                         GroupClient group = new GroupClient(Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), dataObj.get("address").toString());
                         group.setId(Integer.valueOf(dataObj.get("id").toString()));
-                        new MulticastThread(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), username, group).start();
+                        new MulticastThread(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), username, group, mainController).start();
                         Platform.runLater(() -> {
                             this.mainController.addGroupToClientUser(group);
                         });
@@ -198,9 +198,9 @@ public class ReceiverThread extends Thread {
                         List<GroupClient> groups = new ArrayList<GroupClient>();
                         for (Object object : dataArray) {
                             JSONObject ob = Protocol.parseJSONResponse(object.toString());
-                             GroupClient group2 = GroupClient.newGroup(ob);
+                            GroupClient group2 = GroupClient.newGroup(ob);
                             groups.add(group2);
-                              new MulticastThread(group2.getAddress(),group2.getPort(), username, group2).start();
+                            new MulticastThread(group2.getAddress(), group2.getPort(), username, group2, mainController).start();
                         }
                         Platform.runLater(() -> {
                             mainController.addJoinedGroups(groups);
