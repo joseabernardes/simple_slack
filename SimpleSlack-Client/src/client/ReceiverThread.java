@@ -17,6 +17,7 @@ import javafx.application.Platform;
 import model.GroupClient;
 import model.MessageClient;
 import model.PrivateChatClient;
+import model.UserClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import utils.Protocol;
@@ -94,6 +95,19 @@ public class ReceiverThread extends Thread {
                         Platform.runLater(() -> {
                             mainController.addPrivateChats(chats);
                         });
+                        break;
+
+                    case Protocol.Server.Private.LIST_LOGGED_USERS:
+                        dataArray = Protocol.parseJSONListResponse(dataString);
+                        List<PrivateChatClient> loggedUsers = new ArrayList<PrivateChatClient>();
+                        for (Object object : dataArray) {
+                            JSONObject obj = Protocol.parseJSONResponse(object.toString());
+                            loggedUsers.add(PrivateChatClient.newPrivateChat(obj));
+                        }
+                        Platform.runLater(() -> {
+                            mainController.openAddPrivate(loggedUsers);
+                        });
+
                         break;
 
                     case Protocol.Server.Private.SEND_ERROR:
