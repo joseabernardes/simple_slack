@@ -198,9 +198,9 @@ public class ReceiverThread extends Thread {
                         List<GroupClient> groups = new ArrayList<GroupClient>();
                         for (Object object : dataArray) {
                             JSONObject ob = Protocol.parseJSONResponse(object.toString());
-                             GroupClient group2 = GroupClient.newGroup(ob);
+                            GroupClient group2 = GroupClient.newGroup(ob);
                             groups.add(group2);
-                              new MulticastThread(group2.getAddress(),group2.getPort(), username, group2).start();
+                            new MulticastThread(group2.getAddress(), group2.getPort(), username, group2).start();
                         }
                         Platform.runLater(() -> {
                             mainController.addJoinedGroups(groups);
@@ -225,6 +225,25 @@ public class ReceiverThread extends Thread {
                         }
                         Platform.runLater(() -> {
                             mainController.openJoinGroup(groupsNOTjoined);
+                        });
+                        break;
+                    case Protocol.Server.Group.ADD_SUCCESS:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        Platform.runLater(() -> {
+                            mainController.displaySnackBar("Group " + dataObj.get("name").toString() + " created!");
+                        });
+                        break;
+                    case Protocol.Server.Group.ADD_ERROR:
+                        String result;
+                        switch (dataString) {
+                            case Protocol.Server.Group.Error.GROUP_EXISTS:
+                                result = "This group name already exists!";
+                                break;
+                            default:
+                                result = "Something went wrong, contact the admin";
+                        }
+                        Platform.runLater(() -> {
+                            mainController.displaySnackBar(result);
                         });
                         break;
                 }

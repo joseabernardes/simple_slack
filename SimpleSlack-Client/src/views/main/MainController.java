@@ -330,6 +330,10 @@ public class MainController implements Initializable {
         cancel.setOnAction((ActionEvent event1) -> {
             dialog.close();
         });
+        ok.setOnAction((ActionEvent event1) -> {
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Group.ADD, text.getText()));
+            dialog.close();
+        });
         content.setActions(cancel, ok);
         dialog.show();
     }

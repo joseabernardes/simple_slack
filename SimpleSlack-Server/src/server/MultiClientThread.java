@@ -111,9 +111,9 @@ public class MultiClientThread extends Thread {
 
                         receiveGroupFile(inputLine);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.ADD)) {
+                    } else if (command.equals(Protocol.Client.Group.ADD)) {
 
-                        addGroup(inputLine);
+                        addGroup(data);
 
                     } else if (command.equals(Protocol.Client.Group.JOIN)) {
 
@@ -483,34 +483,26 @@ public class MultiClientThread extends Thread {
     }
 
     private void addGroup(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 2) {
-            //find if group name exists
-            boolean exists = false;
-            synchronized (groups) {
-                for (GroupServer x : groups) {
-                    if (x.getName().equals(input[1])) {
-                        exists = true;
-                        break;
-                    }
+        boolean exists = false;
+        synchronized (groups) {
+            for (GroupServer x : groups) {
+                if (x.getName().equals(dataString)) {
+                    exists = true;
+                    break;
                 }
             }
-            if (!exists) {
-                // create group
+        }
+        if (!exists) {
+            // create group
 
-                GroupServer group = new GroupServer(GetPort.getFreeAvaliablePort(groups), input[1], addressUDP);
-                groups.add(group);
-                group.setServerPort(GetPort.getFreeAvaliablePort(groups)); //para nao retornar a mesma porta que em cima //FAZER DEBUG PARA VER
-                //SE É NECESSARIO O -1 NO CONSTRUTOR
-                new WriteGroups(groupSemaphore, groups).start();
+            GroupServer group = new GroupServer(GetPort.getFreeAvaliablePort(groups), dataString, addressUDP);
+            groups.add(group);
+            group.setServerPort(GetPort.getFreeAvaliablePort(groups)); //para nao retornar a mesma porta que em cima //FAZER DEBUG PARA VER
+
 //                                new MulticastServerThread(address, group.getServerPort(), group.getPort()).start();
-
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.ADD_SUCCESS, input[1]));
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.ADD_ERROR, Protocol.Server.Group.Error.GROUP_EXISTS));
-            }
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.ADD_SUCCESS, group.toString()));
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.ADD_ERROR, Protocol.Server.Group.Error.GROUP_EXISTS));
         }
 
     }
