@@ -29,7 +29,7 @@ import server.files.WriteGroups;
  *
  */
 public class Server extends Thread {
-
+    
     private final ServerSocket serverSocket;
     private List<GroupServer> groups;
     private List<UserServer> users;
@@ -37,7 +37,7 @@ public class Server extends Thread {
     private final Semaphore userSemaphore;
     private final Semaphore groupSemaphore;
     private final Semaphore databaseSemaphore;
-
+    
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
         this.groups = Collections.synchronizedList(new ArrayList<GroupServer>());
@@ -47,7 +47,7 @@ public class Server extends Thread {
         this.groupSemaphore = new Semaphore(1);
         this.databaseSemaphore = new Semaphore(1);
     }
-
+    
     private void readDatabase() {
         try {
             databaseSemaphore.acquire();
@@ -72,15 +72,16 @@ public class Server extends Thread {
         } finally {
             databaseSemaphore.release();
         }
-
+        
     }
-
+    
     @Override
     public void start() {
         System.out.println("SERVER IS RUNNING...");
         readDatabase();
-
         
+  
+
         /*
         GroupServer group = null;
 
@@ -108,7 +109,7 @@ public class Server extends Thread {
 
         }*/
 
-        /*
+ /*
         GroupServer group = null;
 
        for (GroupServer object : groups) {
@@ -131,7 +132,7 @@ public class Server extends Thread {
         users.forEach((UserServer user) -> {
             System.out.println(user);
         });
-
+        
         groups.forEach((GroupServer grou) -> {
             System.out.println(grou);
         });
@@ -142,9 +143,9 @@ public class Server extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
     }
-
+    
     public static void main(String[] args) {
         int port = (args.length != 1) ? 7777 : Integer.valueOf(args[0]); //se não tiver argumentos, porta 7777, se tiver, lê e seleciona a porta
         try {

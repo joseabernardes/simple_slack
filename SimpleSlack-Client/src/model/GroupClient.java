@@ -105,6 +105,32 @@ public class GroupClient implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        int hash = 3;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final GroupClient other = (GroupClient) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        return true;
+    }
+    
+    
+
+    @Override
     public String toString() {
         JSONObject obj = new JSONObject();
         obj.put("address", address);

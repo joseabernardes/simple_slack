@@ -289,6 +289,7 @@ public class ListMessageController implements Initializable {
         dialog.show();
         System.out.println("Edit group " + chatNameLbl.getText());
     }
+
     @FXML
     private void onClickRemove(MouseEvent event) {
         String text;
@@ -313,7 +314,9 @@ public class ListMessageController implements Initializable {
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Private.REMOVE_PRIVATE_CHAT, String.valueOf(idChat)));
             }
             System.out.println("Try to remove chat / group " + chatNameLbl.getText());
+            dialog.close();
         });
+
         JFXButton cancel = new JFXButton("Não");
         cancel.setOnAction((ActionEvent event1) -> {
             dialog.close();
@@ -333,7 +336,7 @@ public class ListMessageController implements Initializable {
             file = makeJson(selectedFile.getAbsolutePath(), selectedFile.getName(), selectedFile.length());
             System.out.println(file);
             file_icon.getStyleClass().add("file_not_empty");
-        
+
 //            snack.show("Ficheiro \"" + selectedFile.getName() + "\" anexado á mensagem", 3000);
             textField.setText("Send file \"" + selectedFile.getName() + "\"");
             textField.setDisable(true);
@@ -341,7 +344,7 @@ public class ListMessageController implements Initializable {
             System.out.println("null");
             file = null;
             file_icon.getStyleClass().add("file_empty");
-          
+
 //            snack.show("Nenhum anexo selecionado", 2000);
             textField.setText("");
             textField.setDisable(false);

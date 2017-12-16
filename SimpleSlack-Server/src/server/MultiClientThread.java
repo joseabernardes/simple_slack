@@ -95,9 +95,9 @@ public class MultiClientThread extends Thread {
 
                         sendPrivateFile(inputLine);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Private.REMOVE_PRIVATE_CHAT)) {
+                    } else if (command.equals(Protocol.Client.Private.REMOVE_PRIVATE_CHAT)) {
 
-                        removePrivateChat(inputLine);
+                        removePrivateChat(data);
 
                     } else if (inputLine.startsWith(Protocol.Client.Group.SEND_FILE)) {
 
@@ -123,9 +123,9 @@ public class MultiClientThread extends Thread {
 
                         editGroup(inputLine);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.REMOVE)) {
+                    } else if (command.equals(Protocol.Client.Group.REMOVE)) {
 
-                        removeGroup(inputLine);
+                        removeGroup(data);
 
                     } else if (inputLine.startsWith(Protocol.Client.Group.LEAVE)) {
 
@@ -337,25 +337,20 @@ public class MultiClientThread extends Thread {
     }
 
     private void removePrivateChat(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 2) {
-            UserServer receiver = null;
-            synchronized (users) {
-                for (UserServer user : users) {
-                    if (user.getId() == Integer.valueOf(input[1])) {
-                        receiver = user;
-                        break;
-                    }
+        UserServer receiver = null;
+        synchronized (users) {
+            for (UserServer user : users) {
+                if (user.getId() == Integer.valueOf(dataString)) {
+                    receiver = user;
+                    break;
                 }
             }
-            if (receiver != null) {
-                loggedUser.removePrivateChat(receiver);
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Private.REMOVE_PRIVATE_CHAT_SUCCESS, receiver.getUsername()));
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Private.REMOVE_PRIVATE_CHAT_ERROR, Protocol.Server.Private.Error.USER));
-            }
+        }
+        if (receiver != null) {
+            loggedUser.removePrivateChat(receiver);
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Private.REMOVE_PRIVATE_CHAT_SUCCESS, receiver.toString()));
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Private.REMOVE_PRIVATE_CHAT_ERROR, Protocol.Server.Private.Error.USER));
         }
 
     }
@@ -570,31 +565,30 @@ public class MultiClientThread extends Thread {
     }
 
     private void removeGroup(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 2) {
-            GroupServer group = null;
-            synchronized (groups) {
-                for (GroupServer x : groups) {
-                    if (x.getId() == Integer.valueOf(input[1])) {
-                        group = x;
-                        break;
-                    }
+        GroupServer group = null;
+        synchronized (groups) {
+            for (GroupServer x : groups) {
+                if (x.getId() == Integer.valueOf(dataString)) {
+                    group = x;
+                    break;
                 }
             }
-            if (group != null) { //se group existe
+        }
+        if (group != null) { //se group existe
 
-                if (!group.hasUsers()) {
-                    //remover o grupo
-                    groups.remove(group);
-                } else {
-                    out.println(Protocol.makeJSONResponse(Protocol.Server.Group.REMOVE_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EMPTY));
-                }
+            //LEAVE GROUP
+            loggedUser.removeGroup(group);
+            group.removeUser(loggedUser);
+
+            if (!group.hasUsers()) {
+                //remover o grupo
+                groups.remove(group);
+                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.REMOVE_SUCESS, group.toString()));
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Group.REMOVE_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EMPTY));
             }
-
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.REMOVE_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EXISTS));
         }
 
     }

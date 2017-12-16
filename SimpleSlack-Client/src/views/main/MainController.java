@@ -112,14 +112,11 @@ public class MainController implements Initializable {
         lbl.setUserData(chat);
 
     }
-    
-    
-    public void addGroupToClientUser(GroupClient group){
+
+    public void addGroupToClientUser(GroupClient group) {
         clientUser.addGroup(group);
-        addGroupChat(group);  
+        addGroupChat(group);
     }
-    
-    
 
     public void addMessageToPrivateChat(MessageClient message) {
         int id;
@@ -314,6 +311,26 @@ public class MainController implements Initializable {
         content.setActions(cancel, ok);
         dialog.show();
 
+    }
+
+    public void removePrivateChat(PrivateChatClient chat) {
+        for (Label item : privateList.getItems()) {
+            if (((PrivateChatClient) item.getUserData()).equals(chat)) {
+                privateList.getItems().remove(item);
+                displaySnackBar("Private Chat with '" + chat.getUser().getUsername() + "' removed!");
+                break;
+            }
+        }
+    }
+
+    public void removeGroupChat(GroupClient chat) {
+        for (Label item : groupList.getItems()) {
+            if (((GroupClient) item.getUserData()).equals(chat)) {
+                privateList.getItems().remove(item);
+                displaySnackBar("Group Chat '" + chat.getName() + "' removed!");
+                break;
+            }
+        }
     }
 
     public void displaySnackBar(String message) {

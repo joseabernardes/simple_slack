@@ -123,6 +123,7 @@ public class Protocol {
             public static final String LIST_GROUPS = Client.Group.LIST_GROUP_MSGS;
             public static final String LIST_GROUP_MSGS = Client.Group.LIST_GROUP_MSGS;
             public static final String LIST_JOINED_GROUPS = "list_joined_groups";
+            public static final String REMOVE_SUCESS = "remove_group_sucess";
 
             //ERRORS
             public static final String SEND_ERROR = "send_error";

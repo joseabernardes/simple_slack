@@ -137,9 +137,48 @@ public class ReceiverThread extends Thread {
                         dataObj = Protocol.parseJSONResponse(dataString);
                         new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
                         break;
+
+                    case Protocol.Server.Private.REMOVE_PRIVATE_CHAT_SUCCESS:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        Platform.runLater(() -> {
+                            mainController.removePrivateChat(PrivateChatClient.newPrivateChat(dataObj));
+                        });
+                        break;
+                    case Protocol.Server.Private.REMOVE_PRIVATE_CHAT_ERROR:
+                        if (dataString.equals(Protocol.Server.Private.Error.USER)) {
+                            Platform.runLater(() -> {
+                                mainController.displaySnackBar("PrivateChat not exists");
+                            });
+                        }
+                        break;
                     /**
                      * GROUP CHAT
                      */
+
+                    case Protocol.Server.Group.REMOVE_SUCESS:
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        Platform.runLater(() -> {
+                            mainController.removeGroupChat(GroupClient.newGroup(dataObj));
+                        });
+                        break;
+
+                    case Protocol.Server.Group.REMOVE_ERROR:
+                        String msg;
+                        switch (dataString) {
+                            case Protocol.Server.Group.Error.GROUP_NOT_EMPTY:
+                                msg = "The groups still have joined users";
+                                break;
+                            case Protocol.Server.Group.Error.GROUP_NOT_EXISTS:
+                                msg = "The groups dosn't exist";
+                                break;
+                            default:
+                                msg = "Something went wrong, contact the admin";
+                        }
+                        Platform.runLater(() -> {
+                            mainController.displaySnackBar(msg);
+                        });
+                        break;
+
                     case Protocol.Server.Group.JOIN_SUCCESS:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         GroupClient group = new GroupClient(Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), dataObj.get("address").toString());
