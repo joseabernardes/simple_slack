@@ -115,9 +115,9 @@ public class MultiClientThread extends Thread {
 
                         addGroup(inputLine);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.JOIN)) {
+                    } else if (command.equals(Protocol.Client.Group.JOIN)) {
 
-                        joinGroup(inputLine);
+                        joinGroup(data);
 
                     } else if (inputLine.startsWith(Protocol.Client.Group.EDIT)) {
 
@@ -131,11 +131,11 @@ public class MultiClientThread extends Thread {
 
                         leaveGroup(inputLine);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.SEND_MSG)) {
+                    } else if (command.equals(Protocol.Client.Group.SEND_MSG)) {
 
-                        sendGroupMsg(inputLine);
+                        sendGroupMsg(data);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.LIST_GROUPS)) {
+                    } else if (command.equals(Protocol.Client.Group.LIST_GROUPS)) {
 
                         listGroups();
 
@@ -401,22 +401,21 @@ public class MultiClientThread extends Thread {
     }
 
     //GROUP
-    private void sendGroupMsg(String dataString) throws IOException {
-        String[] input = dataString.split(" ", 3);
-        if (input.length == 3) {
+    private void sendGroupMsg(String dataString) throws IOException {;
+        JSONObject data = Protocol.parseJSONResponse(dataString);
+        if (data.size() == 2) {
             GroupServer group = null;
             synchronized (loggedUser.getGroups()) {
                 for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
-                    if (x.getId() == Integer.valueOf(input[1])) {
+                    if (x.getId() == Integer.valueOf(data.get("id").toString())) {
                         group = x;
                         break;
                     }
                 }
             }
             if (group != null) { //se grupo existe
-
                 byte[] buf = new byte[256];
-                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), input[2], Integer.valueOf(input[1]), false);
+                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(),data.get("msg").toString() , Integer.valueOf(data.get("id").toString()), false);
                 String res = Protocol.makeJSONResponse(Protocol.Server.Group.SEND_MSG, msg.toString());
                 buf = res.getBytes();
                 DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
@@ -517,15 +516,12 @@ public class MultiClientThread extends Thread {
     }
 
     private void joinGroup(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 2) {
-            GroupServer group = null;
-            synchronized (groups) {
-                for (GroupServer x : groups) {
-                    if (x.getId() == Integer.valueOf(input[1])) {
-                        group = x;
-                        break;
-                    }
+        GroupServer group = null;
+        synchronized (groups) {
+            for (GroupServer x : groups) {
+                if (x.getId() == Integer.valueOf(dataString)) {
+                    group = x;
+                    break;
                 }
             }
             if (group != null) { //se group existe
@@ -535,8 +531,6 @@ public class MultiClientThread extends Thread {
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Group.JOIN_ERROR, Protocol.Server.Group.Error.GROUP_EXISTS));
             }
-        } else {
-            badCommand();
         }
     }
 

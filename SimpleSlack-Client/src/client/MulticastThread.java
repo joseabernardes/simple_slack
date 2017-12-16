@@ -22,9 +22,8 @@ public class MulticastThread extends Thread {
     private final int port;
     private boolean receive;
     private GroupClient group;
-    
 
-    public MulticastThread(String address, int port, String username,GroupClient group) {
+    public MulticastThread(String address, int port, String username, GroupClient group) {
         this.address = address;
         this.port = port;
         this.receive = true;
@@ -54,8 +53,11 @@ public class MulticastThread extends Thread {
                             receive = false;
                         }
                     }
-                    this.group.addMessage(MessageClient.newMessage(response));
-//                    System.out.println(received);
+                    String x = response.get("data").toString();
+                    Platform.runLater(() -> {
+                        group.addMessage(MessageClient.newMessage(Protocol.parseJSONResponse(x)));
+                    });
+
                 } catch (IOException ex) {
                     receive = false;
                     Logger.getLogger(MulticastThread.class.getName()).log(Level.SEVERE, null, ex);

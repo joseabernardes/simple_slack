@@ -198,7 +198,9 @@ public class ReceiverThread extends Thread {
                         List<GroupClient> groups = new ArrayList<GroupClient>();
                         for (Object object : dataArray) {
                             JSONObject ob = Protocol.parseJSONResponse(object.toString());
-                            groups.add(GroupClient.newGroup(ob));
+                             GroupClient group2 = GroupClient.newGroup(ob);
+                            groups.add(group2);
+                              new MulticastThread(group2.getAddress(),group2.getPort(), username, group2).start();
                         }
                         Platform.runLater(() -> {
                             mainController.addJoinedGroups(groups);
@@ -212,6 +214,18 @@ public class ReceiverThread extends Thread {
                     case Protocol.Server.Group.RECEIVE_FILE:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
+                        break;
+
+                    case Protocol.Server.Group.LIST_GROUPS:
+                        dataArray = Protocol.parseJSONListResponse(dataString);
+                        List<GroupClient> groupsNOTjoined = new ArrayList<GroupClient>();
+                        for (Object object : dataArray) {
+                            JSONObject ob = Protocol.parseJSONResponse(object.toString());
+                            groupsNOTjoined.add(GroupClient.newGroup(ob));
+                        }
+                        Platform.runLater(() -> {
+                            mainController.openJoinGroup(groupsNOTjoined);
+                        });
                         break;
                 }
                 System.out.println(response);

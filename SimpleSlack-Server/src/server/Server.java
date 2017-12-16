@@ -79,8 +79,6 @@ public class Server extends Thread {
     public void start() {
         System.out.println("SERVER IS RUNNING...");
         readDatabase();
-        
-  
 
         /*
         GroupServer group = null;

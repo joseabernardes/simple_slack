@@ -204,7 +204,7 @@ public class MainController implements Initializable {
         scroll.getStyleClass().add("addLists");
 
         final ToggleGroup group = new ToggleGroup();
-
+        
         if (!chats.isEmpty()) {
             for (GroupClient chat : chats) {
                 JFXRadioButton user = new JFXRadioButton(chat.getName());
