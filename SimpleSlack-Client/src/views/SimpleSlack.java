@@ -17,6 +17,7 @@ import java.io.PipedOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -82,7 +83,8 @@ public class SimpleSlack extends Application {
         if (clientSocket != null) {
             clientSocket.close();
         }
-        super.stop();
+        Platform.exit();
+        System.exit(0);
     }
 
     public static void main(String[] args) {

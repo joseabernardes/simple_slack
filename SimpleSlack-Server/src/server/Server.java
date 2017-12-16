@@ -64,7 +64,7 @@ public class Server extends Thread {
             System.out.println("Erro a ler database");
             System.out.println("Utilizando valores default");
             groups = Collections.synchronizedList(new ArrayList<GroupServer>());
-            groups.add(new GroupServer(1241, "ESTG", "127.0.0.1"));
+            groups.add(new GroupServer(1241, "ESTG", "230.0.0.1"));
             users = Collections.synchronizedList(new ArrayList<UserServer>());
             users.add(new UserServer("alfredo", "quim"));
             users.add(new UserServer("joel", "joel"));
@@ -79,7 +79,6 @@ public class Server extends Thread {
     public void start() {
         System.out.println("SERVER IS RUNNING...");
         readDatabase();
-
         /*
         GroupServer group = null;
 

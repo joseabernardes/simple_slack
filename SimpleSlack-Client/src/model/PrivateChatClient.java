@@ -7,6 +7,7 @@ package model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Objects;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.json.simple.JSONObject;
@@ -40,6 +41,30 @@ public class PrivateChatClient implements Serializable {
     public static PrivateChatClient newPrivateChat(JSONObject obj) {
         PrivateChatClient chat = new PrivateChatClient(new UserClient(Integer.valueOf(obj.get("id").toString()), obj.get("name").toString()));
         return chat;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final PrivateChatClient other = (PrivateChatClient) obj;
+        if (!Objects.equals(this.user, other.user)) {
+            return false;
+        }
+        return true;
     }
 
 }

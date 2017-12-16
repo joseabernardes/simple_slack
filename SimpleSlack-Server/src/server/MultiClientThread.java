@@ -415,7 +415,7 @@ public class MultiClientThread extends Thread {
             }
             if (group != null) { //se grupo existe
                 byte[] buf = new byte[256];
-                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(),data.get("msg").toString() , Integer.valueOf(data.get("id").toString()), false);
+                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString(), Integer.valueOf(data.get("id").toString()), false);
                 String res = Protocol.makeJSONResponse(Protocol.Server.Group.SEND_MSG, msg.toString());
                 buf = res.getBytes();
                 DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
@@ -571,12 +571,10 @@ public class MultiClientThread extends Thread {
         if (group != null) { //se group existe
 
             //LEAVE GROUP
-            loggedUser.removeGroup(group);
-            group.removeUser(loggedUser);
-
-            if (!group.hasUsers()) {
+            if (group.size() == 1) {
                 //remover o grupo
                 groups.remove(group);
+                loggedUser.removeGroup(group);
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Group.REMOVE_SUCESS, group.toString()));
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Group.REMOVE_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EMPTY));

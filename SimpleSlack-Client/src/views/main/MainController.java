@@ -12,6 +12,8 @@ import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXRadioButton;
 import com.jfoenix.controls.JFXSnackbar;
 import com.jfoenix.controls.JFXTextField;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -29,10 +31,13 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import model.GroupClient;
 import model.MessageClient;
@@ -192,6 +197,27 @@ public class MainController implements Initializable {
         }
     }
 
+    private void setDefaultChatPane() {
+        pane.getChildren().clear();
+        try {
+            ImageView image = new ImageView(new Image(new FileInputStream("src/views/images/simple-slack.png")));
+            image.setFitHeight(301.0);
+            image.setFitWidth(469.0);
+            image.setLayoutX(150.0);
+            image.setLayoutY(191.0);
+            image.setPickOnBounds(true);
+            image.setPreserveRatio(true);
+            pane.getChildren().add(image);
+        } catch (FileNotFoundException ex) {
+        }
+        Label lbl = new Label("The best chat app ever made!");
+        lbl.setLayoutX(168.0);
+        lbl.setLayoutY(275.0);
+        lbl.setStyle("-fx-text-fill: #39424b;");
+        lbl.setFont(new Font("System Italic", 34.0));
+        pane.getChildren().add(lbl);
+    }
+
     @FXML
     private void onClickJoinGroup(MouseEvent event) {
         out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_GROUPS, ""));
@@ -204,7 +230,20 @@ public class MainController implements Initializable {
         scroll.getStyleClass().add("addLists");
 
         final ToggleGroup group = new ToggleGroup();
-        
+        JFXDialogLayout content = new JFXDialogLayout();
+        JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
+        JFXButton ok = new JFXButton("Iniciar");
+        ok.setOnAction((ActionEvent event1) -> {
+            GroupClient grp = (GroupClient) group.getSelectedToggle().getUserData();
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Group.JOIN, String.valueOf(grp.getId())));
+            System.out.println(grp);
+            dialog.close();
+        });
+        JFXButton cancel = new JFXButton("Voltar");
+        cancel.setOnAction((ActionEvent event1) -> {
+            dialog.close();
+        });
+
         if (!chats.isEmpty()) {
             for (GroupClient chat : chats) {
                 JFXRadioButton user = new JFXRadioButton(chat.getName());
@@ -214,35 +253,18 @@ public class MainController implements Initializable {
                 user.setPadding(new Insets(5, 0, 5, 0));
                 box.getChildren().add(user);
             }
+            content.setActions(cancel, ok);
         } else {
             box.getChildren().add(new Text("No groups to chat!"));
+            content.setActions(cancel);
         }
 
         scroll.setMaxHeight(200.0);
         scroll.setContent(box);
-        JFXDialogLayout content = new JFXDialogLayout();
-        JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
+
         content.setHeading(new Text("Iniciar conversa de grupo"));
         content.setBody(scroll);
-        JFXButton ok = new JFXButton("Iniciar");
-        ok.setOnAction((ActionEvent event1) -> {
 
-            GroupClient grp = (GroupClient) group.getSelectedToggle().getUserData();
-//            clientUser.addGroup(grp);
-//            addGroupChat(grp); //ESPERAR COMANDO
-
-            out.println(Protocol.makeJSONResponse(Protocol.Client.Group.JOIN, String.valueOf(grp.getId())));
-
-            System.out.println(grp);
-            dialog.close();
-
-        });
-
-        JFXButton cancel = new JFXButton("Voltar");
-        cancel.setOnAction((ActionEvent event1) -> {
-            dialog.close();
-        });
-        content.setActions(cancel, ok);
         dialog.show();
 
     }
@@ -256,28 +278,9 @@ public class MainController implements Initializable {
         VBox box = new VBox();
         ScrollPane scroll = new ScrollPane();
         scroll.getStyleClass().add("addLists");
-
         final ToggleGroup group = new ToggleGroup();
-
-        if (!chats.isEmpty()) {
-            for (PrivateChatClient chat : chats) {
-                JFXRadioButton user = new JFXRadioButton(chat.getUser().getUsername());
-                user.setToggleGroup(group);
-                user.setUserData(chat);
-                user.setSelected(false);
-                user.setPadding(new Insets(5, 0, 5, 0));
-                box.getChildren().add(user);
-            }
-        } else {
-            box.getChildren().add(new Text("No users to chat!"));
-        }
-
-        scroll.setMaxHeight(200.0);
-        scroll.setContent(box);
         JFXDialogLayout content = new JFXDialogLayout();
         JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
-        content.setHeading(new Text("Iniciar conversa privada"));
-        content.setBody(scroll);
         JFXButton ok = new JFXButton("Iniciar");
         ok.setOnAction((ActionEvent event1) -> {
             PrivateChatClient chat = (PrivateChatClient) group.getSelectedToggle().getUserData();
@@ -290,9 +293,28 @@ public class MainController implements Initializable {
         cancel.setOnAction((ActionEvent event1) -> {
             dialog.close();
         });
-        content.setActions(cancel, ok);
-        dialog.show();
 
+        if (!chats.isEmpty()) {
+            for (PrivateChatClient chat : chats) {
+                JFXRadioButton user = new JFXRadioButton(chat.getUser().getUsername());
+                user.setToggleGroup(group);
+                user.setUserData(chat);
+                user.setSelected(false);
+                user.setPadding(new Insets(5, 0, 5, 0));
+                box.getChildren().add(user);
+            }
+            content.setActions(cancel, ok);
+        } else {
+            box.getChildren().add(new Text("No users to chat!"));
+            content.setActions(cancel);
+        }
+
+        scroll.setMaxHeight(200.0);
+        scroll.setContent(box);
+        content.setHeading(new Text("Iniciar conversa privada"));
+        content.setBody(scroll);
+
+        dialog.show();
     }
 
     @FXML
@@ -310,13 +332,14 @@ public class MainController implements Initializable {
         });
         content.setActions(cancel, ok);
         dialog.show();
-
     }
 
     public void removePrivateChat(PrivateChatClient chat) {
         for (Label item : privateList.getItems()) {
             if (((PrivateChatClient) item.getUserData()).equals(chat)) {
                 privateList.getItems().remove(item);
+                clientUser.getPrivateChat().remove(chat);
+                setDefaultChatPane();
                 displaySnackBar("Private Chat with '" + chat.getUser().getUsername() + "' removed!");
                 break;
             }
@@ -326,7 +349,9 @@ public class MainController implements Initializable {
     public void removeGroupChat(GroupClient chat) {
         for (Label item : groupList.getItems()) {
             if (((GroupClient) item.getUserData()).equals(chat)) {
-                privateList.getItems().remove(item);
+                groupList.getItems().remove(item);
+                clientUser.getGroups().remove(chat);
+                setDefaultChatPane();
                 displaySnackBar("Group Chat '" + chat.getName() + "' removed!");
                 break;
             }
@@ -334,13 +359,14 @@ public class MainController implements Initializable {
     }
 
     public void displaySnackBar(String message) {
-        snackBar.show(message, 3000);
+        snackBar.show(message, 4000);
     }
 
     public void setController(int id, String username, PrintWriter out) {
         logged_user.setText(username);
         clientUser = new UserClient(id, username);
         this.out = out;
+        //INITIALIZE DATA
         out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_JOINED_GROUPS, ""));
         out.println(Protocol.makeJSONResponse(Protocol.Client.Private.LIST_PRIVATE_CHAT, ""));
     }

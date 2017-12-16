@@ -41,9 +41,8 @@ public class GroupServer implements Serializable {
         return this.users.add(user);
     }
 
-    public boolean hasUsers() {
-        return !this.users.isEmpty();
-
+    public int size() {
+        return this.users.size();
     }
 
     public boolean removeUser(UserServer user) {
