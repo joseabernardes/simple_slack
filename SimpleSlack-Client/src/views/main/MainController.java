@@ -308,8 +308,8 @@ public class MainController implements Initializable {
 
     }
 
-    public void displayError(String error) {
-        snackBar.show(error, 3000);
+    public void displaySnackBar(String message) {
+        snackBar.show(message, 3000);
     }
 
     public void setController(int id, String username, PrintWriter out) {

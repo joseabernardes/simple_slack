@@ -114,7 +114,7 @@ public class ReceiverThread extends Thread {
 
                         if (dataString.equals(Protocol.Server.Private.Error.USER)) {
                             Platform.runLater(() -> {
-                                mainController.displayError("Cannot send message, user not logged in");
+                                mainController.displaySnackBar("Cannot send message, user not logged in");
                             });
                         }
 
