@@ -120,7 +120,7 @@ public class Protocol {
             public static final String JOIN_SUCCESS = "group_join_success";
             public static final String EDIT_SUCCESS = "group_edit_success";
             public static final String LEAVE_SUCCESS = "group_leave_success";
-            public static final String LIST_GROUPS = Client.Group.LIST_GROUP_MSGS;
+            public static final String LIST_GROUPS = Client.Group.LIST_GROUPS;
             public static final String LIST_GROUP_MSGS = Client.Group.LIST_GROUP_MSGS;
             public static final String LIST_JOINED_GROUPS = "list_joined_groups";
 

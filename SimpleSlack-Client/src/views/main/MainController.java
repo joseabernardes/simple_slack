@@ -118,8 +118,6 @@ public class MainController implements Initializable {
         clientUser.addGroup(group);
         addGroupChat(group);  
     }
-    
-    
 
     public void addMessageToPrivateChat(MessageClient message) {
         int id;
@@ -207,7 +205,7 @@ public class MainController implements Initializable {
         scroll.getStyleClass().add("addLists");
 
         final ToggleGroup group = new ToggleGroup();
-
+        
         if (!chats.isEmpty()) {
             for (GroupClient chat : chats) {
                 JFXRadioButton user = new JFXRadioButton(chat.getName());

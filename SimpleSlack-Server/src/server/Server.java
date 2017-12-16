@@ -80,7 +80,12 @@ public class Server extends Thread {
         System.out.println("SERVER IS RUNNING...");
         readDatabase();
 
-        
+        for (GroupServer object : groups) {
+            if (object.getName().equals("ESTG")) {
+                object.setAddress("230.0.0.1");
+            }
+        }
+
         /*
         GroupServer group = null;
 
@@ -108,7 +113,7 @@ public class Server extends Thread {
 
         }*/
 
-        /*
+ /*
         GroupServer group = null;
 
        for (GroupServer object : groups) {
