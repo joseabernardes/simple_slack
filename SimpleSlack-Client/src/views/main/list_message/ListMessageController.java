@@ -10,6 +10,7 @@ import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXTextField;
+import java.awt.List;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -56,7 +57,7 @@ public class ListMessageController implements Initializable {
     @FXML
     private JFXTextField textField;
     @FXML
-    private Label groupName;
+    private Label chatNameLbl;
     @FXML
     private JFXButton leave_group;
     @FXML
@@ -71,7 +72,7 @@ public class ListMessageController implements Initializable {
     private ImageView file_icon;
 
     private PrintWriter out;
-    private int id_user;
+    private int idChat;
     private ObservableList<MessageClient> messagesList;
     private UserClient client_user;
     private int typeOfChat;
@@ -94,10 +95,10 @@ public class ListMessageController implements Initializable {
         this.typeOfChat = typeOfChat;
         this.client_user = client_user;
         this.out = out;
-        id_user = id;
+        idChat = id;
         this.messagesList = messagesList;
 //        SortedList<Message> sr = messagesList.sorted();
-        groupName.setText(chatName);
+        chatNameLbl.setText(chatName);
         messages.setItems(messagesList);
 //        messages.setItems(sr);
         messages.setCellFactory(param -> new Cell());
@@ -239,7 +240,7 @@ public class ListMessageController implements Initializable {
         } else {
             String text = textField.getText();
             JSONObject obj = new JSONObject();
-            obj.put("id", id_user);
+            obj.put("id", idChat);
             obj.put("msg", text);
             if (this.typeOfChat == ListMessageController.PRIVATE) {
 //                messagesList.add(new MessageClient(client_user.getId(), client_user.getUsername(), LocalDateTime.now(), text)); ERRADO
@@ -247,7 +248,7 @@ public class ListMessageController implements Initializable {
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Group.SEND_MSG, obj));
             }
-            System.out.println("SEND: " + text + "TO: " + groupName.getText());
+            System.out.println("SEND: " + text + "TO: " + chatNameLbl.getText());
             textField.setText("");
             textField.setDisable(false);
         }
@@ -258,10 +259,10 @@ public class ListMessageController implements Initializable {
         JFXDialogLayout content = new JFXDialogLayout();
         JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
         content.setHeading(new Text("Sair do grupo"));
-        content.setBody(new Text("Pretende sair do grupo " + groupName.getText()));
+        content.setBody(new Text("Pretende sair do grupo " + chatNameLbl.getText()));
         JFXButton ok = new JFXButton("Sim");
         ok.setOnAction((ActionEvent event1) -> {
-            System.out.println("Leave group " + groupName.getText());
+            System.out.println("Leave group " + chatNameLbl.getText());
         });
         JFXButton cancel = new JFXButton("Não");
         cancel.setOnAction((ActionEvent event1) -> {
@@ -287,19 +288,33 @@ public class ListMessageController implements Initializable {
         });
         content.setActions(cancel, ok);
         dialog.show();
-        System.out.println("Edit group " + groupName.getText());
+        System.out.println("Edit group " + chatNameLbl.getText());
     }
 
     @FXML
     private void onClickRemove(MouseEvent event) {
+        String text;
+        String titleDialog;
+        if (typeOfChat == ListMessageController.GROUP) {
+            text = "Pretende sair e tentar remover o grupo ";
+            titleDialog = "Remover grupo";
+        } else {
+            text = "Pretende remover a conversa com o user ";
+            titleDialog = "Remover chat";
+        }
 
         JFXDialogLayout content = new JFXDialogLayout();
         JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
-        content.setHeading(new Text("Remover grupo"));
-        content.setBody(new Text("Pretende sair e tentar remover o grupo " + groupName.getText()));
+        content.setHeading(new Text(titleDialog));
+        content.setBody(new Text(text + chatNameLbl.getText()));
         JFXButton ok = new JFXButton("Sim");
         ok.setOnAction((ActionEvent event1) -> {
-            System.out.println("Remove group " + groupName.getText());
+            if (typeOfChat == ListMessageController.GROUP) {
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Group.REMOVE, String.valueOf(idChat)));
+            } else {
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Private.REMOVE_PRIVATE_CHAT, String.valueOf(idChat)));
+            }
+            System.out.println("Try to remove chat / group " + chatNameLbl.getText());
         });
         JFXButton cancel = new JFXButton("Não");
         cancel.setOnAction((ActionEvent event1) -> {
@@ -320,7 +335,7 @@ public class ListMessageController implements Initializable {
             file = makeJson(selectedFile.getAbsolutePath(), selectedFile.getName(), selectedFile.length());
             System.out.println(file);
             file_icon.getStyleClass().add("file_not_empty");
-        
+
 //            snack.show("Ficheiro \"" + selectedFile.getName() + "\" anexado á mensagem", 3000);
             textField.setText("Send file \"" + selectedFile.getName() + "\"");
             textField.setDisable(true);
@@ -328,7 +343,7 @@ public class ListMessageController implements Initializable {
             System.out.println("null");
             file = null;
             file_icon.getStyleClass().add("file_empty");
-          
+
 //            snack.show("Nenhum anexo selecionado", 2000);
             textField.setText("");
             textField.setDisable(false);
