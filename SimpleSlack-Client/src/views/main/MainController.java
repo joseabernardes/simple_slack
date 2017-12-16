@@ -66,6 +66,8 @@ public class MainController implements Initializable {
 
     private ListMessageController controller;
 
+    private Parent nodeList;
+
     private UserClient clientUser;
 
     private PrintWriter out;
@@ -184,13 +186,15 @@ public class MainController implements Initializable {
         try {
             if (controller == null) {//first time
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("list_message/ListMessage.fxml"));
-                Parent node = loader.load();
+                nodeList = loader.load();
                 controller = loader.getController();
                 controller.setController(main, name, user_id, typeOfChat, messagesList, out, clientUser);
                 pane.getChildren().clear();
-                pane.getChildren().add(node);
+                pane.getChildren().add(nodeList);
             } else {
                 controller.setController(main, name, user_id, typeOfChat, messagesList, out, clientUser);
+                pane.getChildren().clear();
+                pane.getChildren().add(nodeList);
             }
         } catch (IOException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -267,6 +271,17 @@ public class MainController implements Initializable {
 
         dialog.show();
 
+    }
+
+    public void leaveSuccess(GroupClient group) {
+        for (Label item : groupList.getItems()) {
+            if (((GroupClient) item.getUserData()).equals(group)) {
+                groupList.getItems().remove(item);
+                displaySnackBar("You leave group " + group.getName() + "successfully");
+                break;
+            }
+        }
+        displaySnackBar("You can't leave group " + group.getName());
     }
 
     @FXML

@@ -127,9 +127,9 @@ public class MultiClientThread extends Thread {
 
                         removeGroup(data);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.LEAVE)) {
+                    } else if (command.equals(Protocol.Client.Group.LEAVE)) {
 
-                        leaveGroup(inputLine);
+                        leaveGroup(data);
 
                     } else if (command.equals(Protocol.Client.Group.SEND_MSG)) {
 
@@ -578,31 +578,25 @@ public class MultiClientThread extends Thread {
     }
 
     private void leaveGroup(String dataString) throws IOException {
-        String[] input = dataString.split(" ");
-        if (input.length == 2) {
-            GroupServer group = null;
-            synchronized (loggedUser.getGroups()) {
-                for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
-                    if (x.getId() == Integer.valueOf(input[1])) {
-                        group = x;
-                        break;
-                    }
+        GroupServer group = null;
+        synchronized (loggedUser.getGroups()) {
+            for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                if (x.getId() == Integer.valueOf(dataString)) {
+                    group = x;
+                    break;
                 }
             }
-            if (group != null) { //se group existe
-                loggedUser.removeGroup(group);
-                group.removeUser(loggedUser);
-                byte[] buf = new byte[256];
-                System.out.println("UNICAST SENDER PORT:" + socketUDP.getPort() + " GROUP:" + input[1]);
-                String res = Protocol.makeJSONResponse(Protocol.Server.Group.LEAVE_SUCCESS, loggedUser.getUsername());
-                buf = res.getBytes();
-                DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
-                socketUDP.send(packet);
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.LEAVE_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EXISTS));
-            }
+        }
+        if (group != null) { //se group existe
+            loggedUser.removeGroup(group);
+            group.removeUser(loggedUser);
+            byte[] buf = new byte[256];
+            String res = Protocol.makeJSONResponse(Protocol.Server.Group.LEAVE_SUCCESS, loggedUser.getUsername());
+            buf = res.getBytes();
+            DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
+            socketUDP.send(packet);
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.LEAVE_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EXISTS));
         }
 
     }

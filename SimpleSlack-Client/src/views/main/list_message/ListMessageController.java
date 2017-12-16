@@ -71,6 +71,10 @@ public class ListMessageController implements Initializable {
     private ImageView file_icon;
 
     private PrintWriter out;
+
+    /**
+     * User id ou Group id
+     */
     private int idChat;
     private ObservableList<MessageClient> messagesList;
     private UserClient client_user;
@@ -261,7 +265,9 @@ public class ListMessageController implements Initializable {
         content.setBody(new Text("Pretende sair do grupo " + chatNameLbl.getText()));
         JFXButton ok = new JFXButton("Sim");
         ok.setOnAction((ActionEvent event1) -> {
-            System.out.println("Leave group " + chatNameLbl.getText());
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LEAVE, String.valueOf(idChat)));
+            System.out.println("Try to leave group " + chatNameLbl.getText());
+             dialog.close();
         });
         JFXButton cancel = new JFXButton("Não");
         cancel.setOnAction((ActionEvent event1) -> {
