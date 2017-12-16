@@ -128,7 +128,13 @@ public class ReceiverThread extends Thread {
                      */
                     case Protocol.Server.Group.JOIN_SUCCESS:
                         dataObj = Protocol.parseJSONResponse(dataString);
-                        new MulticastThread(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), username).start();
+                        GroupClient group = new GroupClient(Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), dataObj.get("address").toString());
+                        group.setId(Integer.valueOf(dataObj.get("id").toString()));
+                        new MulticastThread(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), username, group).start();
+                        Platform.runLater(() -> {
+                            this.mainController.addGroupToClientUser(group);
+                        });
+
                         break;
                     case Protocol.Server.Group.LIST_GROUP_MSGS:
                         //TODO

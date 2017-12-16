@@ -112,6 +112,14 @@ public class MainController implements Initializable {
         lbl.setUserData(chat);
 
     }
+    
+    
+    public void addGroupToClientUser(GroupClient group){
+        clientUser.addGroup(group);
+        addGroupChat(group);  
+    }
+    
+    
 
     public void addMessageToPrivateChat(MessageClient message) {
         int id;

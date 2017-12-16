@@ -119,5 +119,5 @@ public class GroupClient implements Serializable {
         group.setId(Integer.valueOf(obj.get("id").toString()));
         return group;
     }
-
+   
 }

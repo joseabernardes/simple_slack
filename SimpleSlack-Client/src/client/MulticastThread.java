@@ -6,10 +6,14 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import model.GroupClient;
+import model.MessageClient;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import utils.Protocol;
+import views.main.MainController;
 
 public class MulticastThread extends Thread {
 
@@ -17,12 +21,15 @@ public class MulticastThread extends Thread {
     private final String username;
     private final int port;
     private boolean receive;
+    private GroupClient group;
+    
 
-    public MulticastThread(String address, int port, String username) {
+    public MulticastThread(String address, int port, String username,GroupClient group) {
         this.address = address;
         this.port = port;
         this.receive = true;
         this.username = username;
+        this.group = group;
     }
 
     @Override
@@ -41,13 +48,14 @@ public class MulticastThread extends Thread {
                     DatagramPacket packet = new DatagramPacket(buf, buf.length);
                     socket.receive(packet);
                     String received = new String(packet.getData(), 0, packet.getLength());
-                    response = makeJsonResponse(received);
+                    response = Protocol.parseJSONResponse(received);
                     if (response.get("command").equals(Protocol.Server.Group.LEAVE_SUCCESS)) {
                         if (response.get("data").equals(username)) {
                             receive = false;
                         }
                     }
-                    System.out.println(received);
+                    this.group.addMessage(MessageClient.newMessage(response));
+//                    System.out.println(received);
                 } catch (IOException ex) {
                     receive = false;
                     Logger.getLogger(MulticastThread.class.getName()).log(Level.SEVERE, null, ex);
