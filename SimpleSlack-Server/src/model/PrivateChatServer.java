@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -35,5 +36,29 @@ public class PrivateChatServer implements Serializable {
 
     public boolean addMessage(MessageServer message) {
         return this.messages.add(message);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final PrivateChatServer other = (PrivateChatServer) obj;
+        if (!Objects.equals(this.user, other.user)) {
+            return false;
+        }
+        return true;
     }
 }

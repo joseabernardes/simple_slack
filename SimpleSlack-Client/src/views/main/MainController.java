@@ -189,21 +189,30 @@ public class MainController implements Initializable {
 
     @FXML
     private void onClickJoinGroup(MouseEvent event) {
+        out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_GROUPS, ""));
+    }
+
+    public void openJoinGroup(List<GroupClient> chats) {
 
         VBox box = new VBox();
         ScrollPane scroll = new ScrollPane();
         scroll.getStyleClass().add("addLists");
-//        scroll.getViewportBounds().
 
         final ToggleGroup group = new ToggleGroup();
-        for (int i = 0; i < 10; i++) { //getUsers
-            JFXRadioButton user = new JFXRadioButton("Grupo " + i);
-            user.setToggleGroup(group);
-            user.setSelected(false);
-            user.setPadding(new Insets(5, 0, 5, 0));
-            user.setUserData("Grupo N" + i);
-            box.getChildren().add(user);
+
+        if (!chats.isEmpty()) {
+            for (GroupClient chat : chats) {
+                JFXRadioButton user = new JFXRadioButton(chat.getName());
+                user.setToggleGroup(group);
+                user.setUserData(chat);
+                user.setSelected(false);
+                user.setPadding(new Insets(5, 0, 5, 0));
+                box.getChildren().add(user);
+            }
+        } else {
+            box.getChildren().add(new Text("No groups to chat!"));
         }
+
         scroll.setMaxHeight(200.0);
         scroll.setContent(box);
         JFXDialogLayout content = new JFXDialogLayout();
@@ -212,14 +221,16 @@ public class MainController implements Initializable {
         content.setBody(scroll);
         JFXButton ok = new JFXButton("Iniciar");
         ok.setOnAction((ActionEvent event1) -> {
-            String user = group.getSelectedToggle().getUserData().toString();
-//            clientUser.addMessage(clientUser, message)
-            GroupClient grp = new GroupClient(341, user, user);
-//            PrivateChatClient chat = new PrivateChatClient(new UserClient(41, user));
-            clientUser.addGroup(grp);
-            addGroupChat(grp);
-            System.out.println(user);
+
+            GroupClient grp = (GroupClient) group.getSelectedToggle().getUserData();
+//            clientUser.addGroup(grp);
+//            addGroupChat(grp); //ESPERAR COMANDO
+
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Group.JOIN, String.valueOf(grp.getId())));
+
+            System.out.println(grp);
             dialog.close();
+
         });
 
         JFXButton cancel = new JFXButton("Voltar");
@@ -233,22 +244,29 @@ public class MainController implements Initializable {
 
     @FXML
     private void onClickAddPrivate(MouseEvent event) {
+        out.println(Protocol.makeJSONResponse(Protocol.Client.Private.LIST_LOGGED_USERS, ""));
+    }
+
+    public void openAddPrivate(List<PrivateChatClient> chats) {
         VBox box = new VBox();
         ScrollPane scroll = new ScrollPane();
         scroll.getStyleClass().add("addLists");
-//        scroll.getViewportBounds().
 
         final ToggleGroup group = new ToggleGroup();
 
-        for (int i = 0; i < 10; i++) { //getUsers
-            JFXRadioButton user = new JFXRadioButton("User " + i);
-            user.setToggleGroup(group);
-            user.setUserData("User N" + i);
-            user.setSelected(false);
-            user.setPadding(new Insets(5, 0, 5, 0));
-
-            box.getChildren().add(user);
+        if (!chats.isEmpty()) {
+            for (PrivateChatClient chat : chats) {
+                JFXRadioButton user = new JFXRadioButton(chat.getUser().getUsername());
+                user.setToggleGroup(group);
+                user.setUserData(chat);
+                user.setSelected(false);
+                user.setPadding(new Insets(5, 0, 5, 0));
+                box.getChildren().add(user);
+            }
+        } else {
+            box.getChildren().add(new Text("No users to chat!"));
         }
+
         scroll.setMaxHeight(200.0);
         scroll.setContent(box);
         JFXDialogLayout content = new JFXDialogLayout();
@@ -257,14 +275,11 @@ public class MainController implements Initializable {
         content.setBody(scroll);
         JFXButton ok = new JFXButton("Iniciar");
         ok.setOnAction((ActionEvent event1) -> {
-            String user = group.getSelectedToggle().getUserData().toString();
-//            clientUser.addMessage(clientUser, message)
-            PrivateChatClient chat = new PrivateChatClient(new UserClient(41, user));
+            PrivateChatClient chat = (PrivateChatClient) group.getSelectedToggle().getUserData();
             clientUser.getPrivateChat().add(chat);
             addPrivateChat(chat);
-            System.out.println(user);
+            System.out.println(chat.getUser());
             dialog.close();
-
         });
         JFXButton cancel = new JFXButton("Voltar");
         cancel.setOnAction((ActionEvent event1) -> {

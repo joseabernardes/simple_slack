@@ -87,6 +87,10 @@ public class MultiClientThread extends Thread {
                     if (command.equals(Protocol.Client.Private.SEND_MSG)) {
                         sendPrivateMsg(data);
 
+                    } else if (command.equals(Protocol.Client.Private.LIST_LOGGED_USERS)) {
+
+                        listLoggedUsers();
+
                     } else if (inputLine.startsWith(Protocol.Client.Private.SEND_FILE)) {
 
                         sendPrivateFile(inputLine);
@@ -134,10 +138,6 @@ public class MultiClientThread extends Thread {
                     } else if (inputLine.startsWith(Protocol.Client.Group.LIST_GROUPS)) {
 
                         listGroups();
-
-                    } else if (inputLine.startsWith(Protocol.Client.Private.LIST_LOGGED_USERS)) {
-
-                        listLoggedUsers();
 
                     } else if (command.equals(Protocol.Client.Group.LIST_JOINED_GROUPS)) {
 
@@ -375,7 +375,8 @@ public class MultiClientThread extends Thread {
         JSONArray list = new JSONArray();
         synchronized (users) {
             for (UserServer user : users) {
-                if (user.getSocket() != null) { //se tem login
+                //se tem login  && se não tem já conversa privada && se não sou eu proprio
+                if (user.getSocket() != null && !loggedUser.getPrivateChat().contains(new PrivateChatServer(user)) && !user.equals(loggedUser)) {
                     list.add(user.toString());
                 }
             }
