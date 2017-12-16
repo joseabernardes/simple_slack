@@ -34,7 +34,7 @@
                   <Font name="System Bold" size="15.0" />
                </font>
             </Label>
-            <Label fx:id="groupName" layoutX="106.0" layoutY="11.0" text="#ESTG" />
+            <Label fx:id="chatNameLbl" layoutX="106.0" layoutY="11.0" text="#ESTG" />
             </children>
         </AnchorPane>
       <JFXButton graphicTextGap="0.0" layoutX="686.0" layoutY="548.0" onMouseClicked="#onClickSend" text=" ">

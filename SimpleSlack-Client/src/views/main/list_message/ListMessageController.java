@@ -10,7 +10,6 @@ import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
 import com.jfoenix.controls.JFXListView;
 import com.jfoenix.controls.JFXTextField;
-import java.awt.List;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -290,7 +289,6 @@ public class ListMessageController implements Initializable {
         dialog.show();
         System.out.println("Edit group " + chatNameLbl.getText());
     }
-
     @FXML
     private void onClickRemove(MouseEvent event) {
         String text;
@@ -335,7 +333,7 @@ public class ListMessageController implements Initializable {
             file = makeJson(selectedFile.getAbsolutePath(), selectedFile.getName(), selectedFile.length());
             System.out.println(file);
             file_icon.getStyleClass().add("file_not_empty");
-
+        
 //            snack.show("Ficheiro \"" + selectedFile.getName() + "\" anexado á mensagem", 3000);
             textField.setText("Send file \"" + selectedFile.getName() + "\"");
             textField.setDisable(true);
@@ -343,7 +341,7 @@ public class ListMessageController implements Initializable {
             System.out.println("null");
             file = null;
             file_icon.getStyleClass().add("file_empty");
-
+          
 //            snack.show("Nenhum anexo selecionado", 2000);
             textField.setText("");
             textField.setDisable(false);
