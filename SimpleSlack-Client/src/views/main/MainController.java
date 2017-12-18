@@ -292,8 +292,9 @@ public class MainController implements Initializable {
         for (Label item : groupList.getItems()) {
             if (((GroupClient) item.getUserData()).equals(group)) {
                 groupList.getItems().remove(item);
-                displaySnackBar("You leave group " + group.getName() + "successfully");
-                break;
+                displaySnackBar("You leave group " + group.getName() + " successfully");
+                setDefaultChatPane();
+                return;
             }
         }
         displaySnackBar("You can't leave group " + group.getName());

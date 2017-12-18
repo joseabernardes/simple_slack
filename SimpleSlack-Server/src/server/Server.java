@@ -11,17 +11,20 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import libs.portFinder.AvailablePortFinder;
 import model.Database;
 import model.GroupServer;
 import model.PrivateChatServer;
 import model.UserServer;
 import server.files.WriteDatabase;
 import server.files.WriteGroups;
+import utils.GetPort;
 
 /**
  *
@@ -29,7 +32,7 @@ import server.files.WriteGroups;
  *
  */
 public class Server extends Thread {
-    
+
     private final ServerSocket serverSocket;
     private List<GroupServer> groups;
     private List<UserServer> users;
@@ -37,7 +40,7 @@ public class Server extends Thread {
     private final Semaphore userSemaphore;
     private final Semaphore groupSemaphore;
     private final Semaphore databaseSemaphore;
-    
+
     public Server(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
         this.groups = Collections.synchronizedList(new ArrayList<GroupServer>());
@@ -47,7 +50,23 @@ public class Server extends Thread {
         this.groupSemaphore = new Semaphore(1);
         this.databaseSemaphore = new Semaphore(1);
     }
-    
+
+    public int lastGroupID() {
+        List<Integer> id = new ArrayList<Integer>();
+        for (GroupServer group : groups) {
+            id.add(group.getId());
+        }
+        return (int) Collections.max(id);
+    }
+
+    public int lastUserID() {
+        List<Integer> id = new ArrayList<Integer>();
+        for (UserServer user : users) {
+            id.add(user.getId());
+        }
+        return (int) Collections.max(id);
+    }
+
     private void readDatabase() {
         try {
             databaseSemaphore.acquire();
@@ -55,16 +74,16 @@ public class Server extends Thread {
             File file = new File("database.txt");
             in = new ObjectInputStream(new FileInputStream(file));
             database = (Database) in.readObject();
-            GroupServer.setID(groups.size());
-            UserServer.setID(users.size());
             this.groups = database.getGroups();
             this.users = database.getUsers();
+            GroupServer.setID(lastGroupID());
+            UserServer.setID(lastUserID());
             System.out.println("Ficheiro \"database\" lido");
         } catch (ClassNotFoundException | IOException | InterruptedException ex) {
             System.out.println("Erro a ler database");
             System.out.println("Utilizando valores default");
             groups = Collections.synchronizedList(new ArrayList<GroupServer>());
-            groups.add(new GroupServer(1241, "ESTG", "230.0.0.1"));
+            groups.add(new GroupServer(1111, "ESTG", "230.0.0.1"));
             users = Collections.synchronizedList(new ArrayList<UserServer>());
             users.add(new UserServer("alfredo", "quim"));
             users.add(new UserServer("joel", "joel"));
@@ -72,9 +91,9 @@ public class Server extends Thread {
         } finally {
             databaseSemaphore.release();
         }
-        
+
     }
-    
+
     @Override
     public void start() {
         System.out.println("SERVER IS RUNNING...");
@@ -129,8 +148,9 @@ public class Server extends Thread {
         users.forEach((UserServer user) -> {
             System.out.println(user);
         });
-        
+
         groups.forEach((GroupServer grou) -> {
+            grou.setPort(AvailablePortFinder.getNextAvailable());
             System.out.println(grou);
         });
         try {
@@ -140,9 +160,9 @@ public class Server extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }
-    
+
     public static void main(String[] args) {
         int port = (args.length != 1) ? 7777 : Integer.valueOf(args[0]); //se não tiver argumentos, porta 7777, se tiver, lê e seleciona a porta
         try {

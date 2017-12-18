@@ -17,7 +17,7 @@ public class GroupServer implements Serializable {
 
     private int id;
     private int port;
-    private int serverPort;
+//    private int serverPort;
     private String name;
     private String address;
     private final List<MessageServer> messages;
@@ -28,7 +28,7 @@ public class GroupServer implements Serializable {
         this.port = port;
         this.name = name;
         this.address = address;
-        serverPort = -1;
+//        serverPort = -1;
         this.messages = Collections.synchronizedList(new ArrayList<MessageServer>());
         this.users = Collections.synchronizedList(new ArrayList<UserServer>());
     }
@@ -61,13 +61,14 @@ public class GroupServer implements Serializable {
         return port;
     }
 
+    /*
     public int getServerPort() {
         return serverPort;
     }
 
     public void setServerPort(int serverPort) {
         this.serverPort = serverPort;
-    }
+    }*/
 
     public boolean addMessage(MessageServer message) {
         return messages.add(message);
