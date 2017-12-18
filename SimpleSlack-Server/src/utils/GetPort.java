@@ -25,7 +25,7 @@ public class GetPort {
             Iterator<GroupServer> iterator = groups.iterator();
             while (iterator.hasNext() && !find) {
                 GroupServer g = iterator.next();
-                if (g.getPort() == port || g.getServerPort() == port) {
+                if (g.getPort() == port) {
                     find = true;
                 }
             }

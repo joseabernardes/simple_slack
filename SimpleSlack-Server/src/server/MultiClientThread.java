@@ -497,7 +497,7 @@ public class MultiClientThread extends Thread {
 
             GroupServer group = new GroupServer(GetPort.getFreeAvaliablePort(groups), dataString, addressUDP);
             groups.add(group);
-            group.setServerPort(GetPort.getFreeAvaliablePort(groups)); //para nao retornar a mesma porta que em cima //FAZER DEBUG PARA VER
+//            group.setServerPort(GetPort.getFreeAvaliablePort(groups)); //para nao retornar a mesma porta que em cima //FAZER DEBUG PARA VER
 
 //                                new MulticastServerThread(address, group.getServerPort(), group.getPort()).start();
             out.println(Protocol.makeJSONResponse(Protocol.Server.Group.ADD_SUCCESS, group.toString()));
