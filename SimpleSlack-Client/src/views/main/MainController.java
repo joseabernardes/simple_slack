@@ -121,8 +121,23 @@ public class MainController implements Initializable {
     }
 
     public void addGroupToClientUser(GroupClient group) {
+        out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_GROUP_MSGS, String.valueOf(group.getId())));
         clientUser.addGroup(group);
         addGroupChat(group);
+    }
+
+    public void addListMessagesToGroup(List<MessageClient> list) {
+        if (!list.isEmpty()) {
+            MessageClient sms = list.get(0);
+            for (Label label : groupList.getItems()) {
+                GroupClient grupo = (GroupClient) label.getUserData();
+                if (grupo.getId() == sms.getId_destiny()) {
+                    for (MessageClient messageClient : list) {
+                        grupo.addMessage(messageClient);
+                    }
+                }
+            }
+        }
     }
 
     public void addMessageToPrivateChat(MessageClient message) {

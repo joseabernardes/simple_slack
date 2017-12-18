@@ -147,13 +147,13 @@ public class MultiClientThread extends Thread {
 
                         listPrivateChats();
 
-                    } else if (inputLine.startsWith(Protocol.Client.Private.LIST_PRIVATE_MSGS)) {
+                    } else if (command.equals(Protocol.Client.Private.LIST_PRIVATE_MSGS)) {
 
-                        listPrivateMsgs(inputLine);
+                        listPrivateMsgs(data);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.LIST_GROUP_MSGS)) {
+                    } else if (command.equals(Protocol.Client.Group.LIST_GROUP_MSGS)) {
 
-                        listGroupMsgs(inputLine);
+                        listGroupMsgs(data);
 
                     } else if (inputLine.equals(Protocol.Client.Auth.LOGOUT)) {
                         loggedUser.setSocket(null);
@@ -626,17 +626,15 @@ public class MultiClientThread extends Thread {
     }
 
     private void listGroupMsgs(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 2) {
-            GroupServer group = null;
-            synchronized (loggedUser.getGroups()) {
-                for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
-                    if (x.getId() == Integer.valueOf(input[1])) {
-                        group = x;
-                        break;
-                    }
+        GroupServer group = null;
+        synchronized (loggedUser.getGroups()) {
+            for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                if (x.getId() == Integer.valueOf(dataString)) {
+                    group = x;
+                    break;
                 }
             }
+
             if (group != null) { //se fez join
                 List<MessageServer> msgs = group.getMessages();
                 JSONArray list = new JSONArray();
@@ -650,10 +648,7 @@ public class MultiClientThread extends Thread {
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Group.LIST_MSGS_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EXISTS));
             }
 
-        } else {
-            badCommand();
         }
 
     }
-
 }
