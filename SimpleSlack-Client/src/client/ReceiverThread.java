@@ -25,19 +25,19 @@ import views.auth.AuthController;
 import views.main.MainController;
 
 public class ReceiverThread extends Thread {
-    
+
     private final BufferedReader in;
     private String username;
     private final AuthController authController;
     private MainController mainController;
-    
+
     public ReceiverThread(InputStream in, AuthController controller) {
         super("ReceiverThread");
         this.in = new BufferedReader(new InputStreamReader(in));
         username = null;
         this.authController = controller;
     }
-    
+
     @Override
     public void run() {
         try {
@@ -56,7 +56,7 @@ public class ReceiverThread extends Thread {
                         dataObj = Protocol.parseJSONResponse(dataString);
                         username = dataObj.get("name").toString();
                         int id = Integer.valueOf(dataObj.get("id").toString());
-                        
+
                         Platform.runLater(() -> {
                             try {
                                 mainController = authController.loginSuccess(id, username);
@@ -66,9 +66,9 @@ public class ReceiverThread extends Thread {
                         });
                         break;
                     case Protocol.Server.Auth.LOGIN_ERROR:
-                        
+
                         loginErrors(dataString);
-                        
+
                         break;
                     case Protocol.Server.Auth.REGIST_SUCCESS:
                         Platform.runLater(() -> {
@@ -76,9 +76,9 @@ public class ReceiverThread extends Thread {
                             authController.registSuccess(dataString);
                         });
                         break;
-                    
+
                     case Protocol.Server.Auth.REGIST_ERROR:
-                        
+
                         registErrors(dataString);
                         break;
 
@@ -96,7 +96,7 @@ public class ReceiverThread extends Thread {
                             mainController.addPrivateChats(chats);
                         });
                         break;
-                    
+
                     case Protocol.Server.Private.LIST_LOGGED_USERS:
                         dataArray = Protocol.parseJSONListResponse(dataString);
                         List<PrivateChatClient> loggedUsers = new ArrayList<PrivateChatClient>();
@@ -107,19 +107,19 @@ public class ReceiverThread extends Thread {
                         Platform.runLater(() -> {
                             mainController.openAddPrivate(loggedUsers);
                         });
-                        
+
                         break;
-                    
+
                     case Protocol.Server.Private.SEND_ERROR:
-                        
+
                         if (dataString.equals(Protocol.Server.Private.Error.USER)) {
                             Platform.runLater(() -> {
                                 mainController.displaySnackBar("Cannot send message, user not logged in");
                             });
                         }
-                        
+
                         break;
-                    
+
                     case Protocol.Server.Private.RECEIVE_MSG:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         Platform.runLater(() -> {
@@ -137,7 +137,7 @@ public class ReceiverThread extends Thread {
                         dataObj = Protocol.parseJSONResponse(dataString);
                         new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
                         break;
-                    
+
                     case Protocol.Server.Private.REMOVE_PRIVATE_CHAT_SUCCESS:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         Platform.runLater(() -> {
@@ -154,14 +154,14 @@ public class ReceiverThread extends Thread {
                     /**
                      * GROUP CHAT
                      */
-                    
+
                     case Protocol.Server.Group.REMOVE_SUCESS:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         Platform.runLater(() -> {
                             mainController.removeGroupChat(GroupClient.newGroup(dataObj));
                         });
                         break;
-                    
+
                     case Protocol.Server.Group.REMOVE_ERROR:
                         String msg;
                         switch (dataString) {
@@ -178,7 +178,7 @@ public class ReceiverThread extends Thread {
                             mainController.displaySnackBar(msg);
                         });
                         break;
-                    
+
                     case Protocol.Server.Group.JOIN_SUCCESS:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         GroupClient group = new GroupClient(Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), dataObj.get("address").toString());
@@ -187,15 +187,21 @@ public class ReceiverThread extends Thread {
                         Platform.runLater(() -> {
                             this.mainController.addGroupToClientUser(group);
                         });
-                        
+
                         break;
                     case Protocol.Server.Group.LIST_GROUP_MSGS:
                         dataArray = Protocol.parseJSONListResponse(dataString);
+                        List<MessageClient> msgs = new ArrayList<MessageClient>();
+                        for (Object object : dataArray) {
+                            JSONObject ob = Protocol.parseJSONResponse(object.toString());
+                            MessageClient sms = MessageClient.newMessage(ob);
+                            msgs.add(sms);
+                        }
                         Platform.runLater(() -> {
-                            mainController.addListMessagesToGroup(dataArray);
+                            mainController.addListMessagesToGroup(msgs);
                         });
                         break;
-                    
+
                     case Protocol.Server.Group.LIST_JOINED_GROUPS:
                         dataArray = Protocol.parseJSONListResponse(dataString);
                         List<GroupClient> groups = new ArrayList<GroupClient>();
@@ -203,15 +209,15 @@ public class ReceiverThread extends Thread {
                             JSONObject ob = Protocol.parseJSONResponse(object.toString());
                             GroupClient group2 = GroupClient.newGroup(ob);
                             groups.add(group2);
-                            
+
                             new MulticastThread(group2.getAddress(), group2.getPort(), username, group2, mainController).start();
-                            
+
                         }
                         Platform.runLater(() -> {
                             mainController.addJoinedGroups(groups);
                         });
                         break;
-                    
+
                     case Protocol.Server.Group.SEND_FILE:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString()).start();
@@ -220,7 +226,7 @@ public class ReceiverThread extends Thread {
                         dataObj = Protocol.parseJSONResponse(dataString);
                         new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
                         break;
-                    
+
                     case Protocol.Server.Group.LIST_GROUPS:
                         dataArray = Protocol.parseJSONListResponse(dataString);
                         List<GroupClient> groupsNOTjoined = new ArrayList<GroupClient>();
@@ -258,7 +264,7 @@ public class ReceiverThread extends Thread {
             System.out.println("ReceiverThread Fechado");
         }
     }
-    
+
     private void loginErrors(String dataString) {
         String result;
         switch (dataString) {
@@ -272,7 +278,7 @@ public class ReceiverThread extends Thread {
             authController.loginError(result);
         });
     }
-    
+
     private void registErrors(String dataString) {
         String result;
         switch (dataString) {

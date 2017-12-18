@@ -21,8 +21,8 @@ public class MulticastThread extends Thread {
     private final String username;
     private final int port;
     private boolean receive;
-    private GroupClient group;
-    private MainController mainController;
+    private final GroupClient group;
+    private final MainController mainController;
 
     public MulticastThread(String address, int port, String username, GroupClient group, MainController mainController) {
         this.address = address;
