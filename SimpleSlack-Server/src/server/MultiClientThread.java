@@ -10,6 +10,7 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import javafx.application.Platform;
 import model.GroupServer;
 import model.MessageServer;
 import model.PrivateChatServer;
@@ -117,9 +118,9 @@ public class MultiClientThread extends Thread {
 
                         joinGroup(data);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.EDIT)) {
+                    } else if (command.equals(Protocol.Client.Group.EDIT)) {
 
-                        editGroup(inputLine);
+                        editGroup(data);
 
                     } else if (command.equals(Protocol.Client.Group.REMOVE)) {
 
@@ -386,24 +387,23 @@ public class MultiClientThread extends Thread {
     }
 
     private void listPrivateMsgs(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 2) {
-            JSONArray list = new JSONArray();
-            synchronized (loggedUser.getPrivateChat()) {
-                for (PrivateChatServer chat : loggedUser.getPrivateChat()) {
-                    if (chat.getUser().getId() == Integer.valueOf(input[1])) {
-                        for (MessageServer msg : chat.getMessages()) {
-                            list.add(msg);
-                            break;
-                        }
+        JSONArray list = new JSONArray();
 
+        synchronized (loggedUser.getPrivateChat()) {
+            for (PrivateChatServer chat : loggedUser.getPrivateChat()) {
+                if (chat.getUser().getId() == Integer.valueOf(dataString)) {
+                    for (MessageServer msg : chat.getMessages()) {
+                        list.add(msg);
                     }
+
                 }
             }
-            out.println(Protocol.makeJSONResponse(Protocol.Server.Private.LIST_PRIVATE_MSGS, list.toJSONString()));
-        } else {
-            badCommand();
         }
+        JSONObject obj = new JSONObject();
+        obj.put("id", dataString);
+        obj.put("messages", list.toJSONString());
+        out.println(Protocol.makeJSONResponse(Protocol.Server.Private.LIST_PRIVATE_MSGS, obj));
+
     }
 
     //GROUP
@@ -532,30 +532,30 @@ public class MultiClientThread extends Thread {
         }
     }
 
-    private void editGroup(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 3) {
+    private void editGroup(String dataString) throws IOException{
+        JSONObject data = Protocol.parseJSONResponse(dataString);
             GroupServer group = null;
             synchronized (groups) {
                 for (GroupServer x : groups) {
-                    if (x.getId() == Integer.valueOf(input[1])) {
+                    if (x.getId() == Integer.valueOf(data.get("id").toString())) {
                         group = x;
                         break;
                     }
                 }
             }
             if (group != null) { //se group existe
-                group.setName(input[2]);
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.EDIT_SUCCESS, group.toString()));
+                group.setName(data.get("nome").toString());
+                byte[] buf = new byte[256];
+                String res = Protocol.makeJSONResponse(Protocol.Server.Group.EDIT_SUCCESS, group.toString());
+                buf = res.getBytes();
+                DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
+                socketUDP.send(packet);
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Group.EDIT_ERROR, Protocol.Server.Group.Error.GROUP_EXISTS));
 
             }
-        } else {
-            badCommand();
-        }
     }
-
+    
     private void removeGroup(String dataString) {
         GroupServer group = null;
         synchronized (groups) {

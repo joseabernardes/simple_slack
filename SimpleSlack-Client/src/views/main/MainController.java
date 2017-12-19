@@ -89,6 +89,7 @@ public class MainController implements Initializable {
     public void addJoinedGroups(List<GroupClient> list) {
         for (GroupClient group : list) {
             addGroupChat(group);
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_GROUP_MSGS, String.valueOf(group.getId())));
         }
         groupList.setOnMouseClicked((MouseEvent event) -> {
             onGroupListClickEvent(event);
@@ -107,6 +108,7 @@ public class MainController implements Initializable {
 
         for (PrivateChatClient chat : list) {
             addPrivateChat(chat);
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Private.LIST_PRIVATE_MSGS, String.valueOf(chat.getUser().getId())));
         }
         privateList.setOnMouseClicked((MouseEvent event) -> {
             onPrivateListClickEvent(event);
@@ -119,6 +121,31 @@ public class MainController implements Initializable {
         privateList.getItems().add(lbl);
         lbl.setUserData(chat);
 
+    }
+
+    public void addListMessagesToPrivateChat(List<MessageClient> list, int id) {
+        if (!list.isEmpty()) {
+            for (Label label : privateList.getItems()) {
+                PrivateChatClient pcc = (PrivateChatClient) label.getUserData();
+                if (pcc.getUser().getId() == id) {
+                    for (MessageClient messageClient : list) {
+                        pcc.addMessage(messageClient);
+                    }
+                }
+            }
+        }
+    }
+
+    public void updateGroupName(int id, String newname) {
+        for (Label label : groupList.getItems()) {
+            GroupClient grupo = (GroupClient) label.getUserData();
+            if (grupo.getId() == id) {
+                label.setText("# " + newname);
+                grupo.setName(newname);
+                displaySnackBar("Group edited successfully!!");
+                break;
+            }
+        }
     }
 
     public void addGroupToClientUser(GroupClient group) {

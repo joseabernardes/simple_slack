@@ -23,6 +23,7 @@ import org.json.simple.JSONObject;
 import utils.Protocol;
 import views.auth.AuthController;
 import views.main.MainController;
+import views.main.list_message.ListMessageController;
 
 public class ReceiverThread extends Thread {
 
@@ -172,10 +173,23 @@ public class ReceiverThread extends Thread {
                             });
                         }
                         break;
+                    case Protocol.Server.Private.LIST_PRIVATE_MSGS:
+
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        dataArray = Protocol.parseJSONListResponse(dataObj.get("messages").toString());
+                        List<MessageClient> mesgs = new ArrayList<MessageClient>();
+                        for (Object object : dataArray) {
+                            JSONObject ob = Protocol.parseJSONResponse(object.toString());
+                            MessageClient sms = MessageClient.newMessage(ob);
+                            mesgs.add(sms);
+                        }
+                        Platform.runLater(() -> {
+                            mainController.addListMessagesToPrivateChat(mesgs, Integer.valueOf(dataObj.get("id").toString()));
+                        });
+                        break;
                     /**
                      * GROUP CHAT
                      */
-
                     case Protocol.Server.Group.REMOVE_SUCESS:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         Platform.runLater(() -> {
@@ -276,6 +290,11 @@ public class ReceiverThread extends Thread {
                         }
                         Platform.runLater(() -> {
                             mainController.displaySnackBar(result);
+                        });
+                        break;
+                    case Protocol.Server.Group.EDIT_ERROR:
+                        Platform.runLater(() -> {
+                            mainController.displaySnackBar("This group doesn't exist!!");
                         });
                         break;
                 }
