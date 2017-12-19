@@ -9,7 +9,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * CLASSE USER CLIENTE
@@ -19,13 +18,11 @@ public class UserClient implements Serializable {
 
     private int id;
     private String username;
-    private final List<GroupClient> groups;
     private List<PrivateChatClient> privateChat;
 
     public UserClient(int id, String username) {
         this.username = username;
         this.id = id;
-        this.groups = Collections.synchronizedList(new ArrayList<GroupClient>());
         this.privateChat = Collections.synchronizedList(new ArrayList<PrivateChatClient>());
     }
 
@@ -53,18 +50,6 @@ public class UserClient implements Serializable {
         this.username = username;
     }
 
-    public boolean addGroup(GroupClient group) {
-        return this.groups.add(group);
-    }
-
-    public boolean removeGroup(GroupClient group) {
-        return this.groups.remove(group);
-    }
-
-    public List<GroupClient> getGroups() {
-        return this.groups;
-    }
-
     /**
      *
      * @param user
@@ -81,22 +66,6 @@ public class UserClient implements Serializable {
         return null;
     }
 
-    /**
-     *
-     * @param user
-     * @param message
-     * @return FALSE IF NOT ADD
-     */
-//    public boolean addMessage(UserClient user, MessageClient message) {
-//        synchronized (privateChat) {
-//            for (PrivateChatClient privateChat1 : privateChat) {
-//                if (privateChat1.getUser().equals(user)) {
-//                    return privateChat1.addMessage(message);
-//                }
-//            }
-//        }
-//        return false;
-//    }
     /**
      *
      * @param user

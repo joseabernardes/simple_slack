@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -20,10 +19,8 @@ import java.util.logging.Logger;
 import libs.portFinder.AvailablePortFinder;
 import model.Database;
 import model.GroupServer;
-import model.PrivateChatServer;
 import model.UserServer;
 import server.files.WriteDatabase;
-import utils.GetPort;
 
 /**
  *
@@ -85,6 +82,7 @@ public class Server extends Thread {
             groups.add(new GroupServer(1111, "ESTG", "230.0.0.1"));
             users = Collections.synchronizedList(new ArrayList<UserServer>());
             users.add(new UserServer("alfredo", "quim"));
+            users.add(new UserServer("paulo", "paulo"));
             users.add(new UserServer("joel", "joel"));
             database = new Database(groups, users);
         } finally {
@@ -97,52 +95,6 @@ public class Server extends Thread {
     public void start() {
         System.out.println("SERVER IS RUNNING...");
         readDatabase();
-        /*
-        GroupServer group = null;
-
-        for (GroupServer object : groups) {
-            if (object.getName().equals("ESTG")) {
-                group = object;
-            }
-        }
-
-        UserServer alfred = null;
-        for (UserServer user : users) {
-            if (user.getUsername().equals("alfredo")) {
-                alfred = user;
-            }
-        }
-
-        for (UserServer user : users) {
-            if (user.getUsername().equals("joel")) {
-                user.addGroup(group);
-                alfred.addGroup(group);
-                user.addPrivateChat(alfred);
-//                alfred.addPrivateChat(user);
-
-            }
-
-        }*/
-
- /*
-        GroupServer group = null;
-
-       for (GroupServer object : groups) {
-            if (object.getName().equals("ESTG")) {
-                group = object;
-            }
-        }
-        for (UserServer user : users) {
-            if (user.getUsername().equals("joel")) {
-                user.addGroup(group);
-                alfred.addGroup(group);
-                user.addPrivateChat(alfred);
-                alfred.addPrivateChat(user);
-
-            }
-
-        }
-         */
         new WriteDatabase(databaseSemaphore, database).start();
         users.forEach((UserServer user) -> {
             System.out.println(user);
@@ -163,7 +115,7 @@ public class Server extends Thread {
     }
 
     public static void main(String[] args) {
-        int port = (args.length != 1) ? 7777 : Integer.valueOf(args[0]); //se não tiver argumentos, porta 7777, se tiver, lê e seleciona a porta
+        int port = 7777;
         try {
             ServerSocket serverSocket = new ServerSocket(port);
             new Server(serverSocket).start();

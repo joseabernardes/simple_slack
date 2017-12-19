@@ -17,13 +17,11 @@ import javafx.application.Platform;
 import model.GroupClient;
 import model.MessageClient;
 import model.PrivateChatClient;
-import model.UserClient;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import utils.Protocol;
 import views.auth.AuthController;
 import views.main.MainController;
-import views.main.list_message.ListMessageController;
 
 public class ReceiverThread extends Thread {
 
@@ -265,13 +263,13 @@ public class ReceiverThread extends Thread {
                         });
                         break;
 
-                    case Protocol.Server.Group.SEND_FILE:
+                    case Protocol.Server.Group.SEND_FILE: //servidor confirma que está pronto a receber o ficheiro
                         dataObj = Protocol.parseJSONResponse(dataString);
                         new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString(), mainController).start();
                         break;
                     case Protocol.Server.Group.RECEIVE_FILE:
                         dataObj = Protocol.parseJSONResponse(dataString);
-                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home"), mainController).start();
+                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), dataObj.get("path").toString(), mainController).start();
                         break;
 
                     case Protocol.Server.Group.LIST_GROUPS:
@@ -315,7 +313,7 @@ public class ReceiverThread extends Thread {
         } catch (IOException ex) {
             Platform.runLater(() -> {
                 if (mainController != null) {
-                    mainController.displaySnackBar("O servidor parou inesperadamente, volte novamente mais tarde");
+                    mainController.closeDialog("O servidor parou inesperadamente, volte novamente mais tarde");
                 } else if (authController != null) {
                     authController.closeDialog("O servidor parou inesperadamente, volte novamente mais tarde");
                 }

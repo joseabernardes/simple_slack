@@ -115,7 +115,7 @@ public class AuthController implements Initializable {
     }
 
     public void registSuccess(String username) {
-        tab_pan.getSelectionModel().select(1);
+        tab_pan.getSelectionModel().select(0);
         loginUsername.setText(username);
         registUsername.setText("");
         registPassword1.setText("");

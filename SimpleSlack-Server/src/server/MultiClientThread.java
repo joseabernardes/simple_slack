@@ -10,7 +10,6 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import javafx.application.Platform;
 import model.GroupServer;
 import model.MessageServer;
 import model.PrivateChatServer;
@@ -98,17 +97,17 @@ public class MultiClientThread extends Thread {
 
                         removePrivateChat(data);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.SEND_FILE)) {
+                    } else if (command.equals(Protocol.Client.Group.SEND_FILE)) {
 
-                        sendGroupFile(inputLine);
+                        sendGroupFile(data);
 
                     } else if (command.equals(Protocol.Client.Private.RECEIVE_FILE)) {
 
                         receivePrivateFile(data);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Group.RECEIVE_FILE)) {
+                    } else if (command.equals(Protocol.Client.Group.RECEIVE_FILE)) {
 
-                        receiveGroupFile(inputLine);
+                        receiveGroupFile(data);
 
                     } else if (command.equals(Protocol.Client.Group.ADD)) {
 
@@ -413,7 +412,7 @@ public class MultiClientThread extends Thread {
                 }
             }
             if (group != null) { //se grupo existe
-                byte[] buf = new byte[256];
+                byte[] buf = new byte[2048];
                 MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString(), Integer.valueOf(data.get("id").toString()));
                 String res = Protocol.makeJSONResponse(Protocol.Server.Group.SEND_MSG, msg.toString());
                 buf = res.getBytes();
@@ -429,54 +428,58 @@ public class MultiClientThread extends Thread {
 
     }
 
+    /*
+    id
+    file_name
+    size
+    path
+     */
     private void sendGroupFile(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 5) {
-            GroupServer group = null;
-            synchronized (loggedUser.getGroups()) {
-                for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
-                    if (x.getId() == Integer.valueOf(input[1])) {
-                        group = x;
-                        break;
-                    }
+        JSONObject data = Protocol.parseJSONResponse(dataString);
+        GroupServer group = null;
+        synchronized (loggedUser.getGroups()) {
+            for (GroupServer x : loggedUser.getGroups()) { //ver se fez join ao grupo
+                if (x.getId() == Integer.valueOf(data.get("id").toString())) {
+                    group = x;
+                    break;
                 }
             }
-            if (group != null) { //se grupo existe
-                int port = GetPort.getFreeAvaliablePort(groups);
-                new ReceiveFile(port, input[2], Integer.parseInt(input[3]), group, loggedUser, socketUDP).start();
-                JSONObject object = new JSONObject();
-                object.put("port", port);
-                object.put("address", socket.getInetAddress().getHostAddress());
-                object.put("path", input[4]);
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.SEND_FILE, object.toJSONString()));
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.SEND_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EXISTS));
-            }
+        }
+        if (group != null) { //se grupo existe
+            int port = GetPort.getFreeAvaliablePort(groups);
+            new ReceiveFile(port, data.get("file_name").toString(), Integer.parseInt(data.get("size").toString()), group, loggedUser, socketUDP).start();
+            JSONObject object = new JSONObject();
+            object.put("port", port);
+            object.put("address", socket.getInetAddress().getHostAddress());
+            object.put("path", data.get("path").toString());
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.SEND_FILE, object.toJSONString()));
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.SEND_ERROR, Protocol.Server.Group.Error.GROUP_NOT_EXISTS));
         }
 
     }
 
+    /*
+    group
+    path
+    file_name
+     */
     private void receiveGroupFile(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 3) {
-            int port = GetPort.getFreeAvaliablePort(groups);
-            String path = "files/groups/" + input[1] + "/" + input[2];
-            File file = new File(path);
-            if (file.exists()) {
-                new SendFile(port, path).start();
-                JSONObject object = new JSONObject();
-                object.put("port", port);
-                object.put("address", socket.getInetAddress().getHostAddress());
-                object.put("name", input[2]);
-                object.put("size", file.length());
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.RECEIVE_FILE, object.toJSONString()));
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.FILE_ERROR, Protocol.Server.Group.Error.FILE));
-            }
+        JSONObject data = Protocol.parseJSONResponse(dataString);
+        int port = GetPort.getFreeAvaliablePort(groups);
+        String path = "files/groups/" + data.get("group").toString() + "/" + data.get("file_name").toString();
+        File file = new File(path);
+        if (file.exists()) {
+            new SendFile(port, path).start();
+            JSONObject object = new JSONObject();
+            object.put("port", port);
+            object.put("address", socket.getInetAddress().getHostAddress());
+            object.put("name", data.get("file_name").toString());
+            object.put("size", file.length());
+            object.put("path", data.get("path").toString());
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.RECEIVE_FILE, object.toJSONString()));
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.FILE_ERROR, Protocol.Server.Group.Error.FILE));
         }
 
     }
@@ -525,30 +528,30 @@ public class MultiClientThread extends Thread {
         }
     }
 
-    private void editGroup(String dataString) throws IOException{
+    private void editGroup(String dataString) throws IOException {
         JSONObject data = Protocol.parseJSONResponse(dataString);
-            GroupServer group = null;
-            synchronized (groups) {
-                for (GroupServer x : groups) {
-                    if (x.getId() == Integer.valueOf(data.get("id").toString())) {
-                        group = x;
-                        break;
-                    }
+        GroupServer group = null;
+        synchronized (groups) {
+            for (GroupServer x : groups) {
+                if (x.getId() == Integer.valueOf(data.get("id").toString())) {
+                    group = x;
+                    break;
                 }
             }
-            if (group != null) { //se group existe
-                group.setName(data.get("nome").toString());
-                byte[] buf = new byte[256];
-                String res = Protocol.makeJSONResponse(Protocol.Server.Group.EDIT_SUCCESS, group.toString());
-                buf = res.getBytes();
-                DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
-                socketUDP.send(packet);
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Group.EDIT_ERROR, Protocol.Server.Group.Error.GROUP_EXISTS));
+        }
+        if (group != null) { //se group existe
+            group.setName(data.get("nome").toString());
+            byte[] buf = new byte[2048];
+            String res = Protocol.makeJSONResponse(Protocol.Server.Group.EDIT_SUCCESS, group.toString());
+            buf = res.getBytes();
+            DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
+            socketUDP.send(packet);
+        } else {
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Group.EDIT_ERROR, Protocol.Server.Group.Error.GROUP_EXISTS));
 
-            }
+        }
     }
-    
+
     private void removeGroup(String dataString) {
         GroupServer group = null;
         synchronized (groups) {
@@ -589,7 +592,7 @@ public class MultiClientThread extends Thread {
         if (group != null) { //se group existe
             loggedUser.removeGroup(group);
             group.removeUser(loggedUser);
-            byte[] buf = new byte[256];
+            byte[] buf = new byte[2048];
             String res = Protocol.makeJSONResponse(Protocol.Server.Group.LEAVE_SUCCESS, loggedUser.getUsername());
             buf = res.getBytes();
             DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());

@@ -142,15 +142,19 @@ public class MainController implements Initializable {
             if (grupo.getId() == id) {
                 label.setText("# " + newname);
                 grupo.setName(newname);
-                displaySnackBar("Group edited successfully!!");
+//                displaySnackBar("Group edited successfully!!");
                 break;
             }
         }
+        if (controller != null) {
+            controller.updateChatName(id, newname);
+        }
+
     }
 
     public void addGroupToClientUser(GroupClient group) {
         out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_GROUP_MSGS, String.valueOf(group.getId())));
-        clientUser.addGroup(group);
+//        clientUser.addGroup(group);
         addGroupChat(group);
     }
 
@@ -199,6 +203,26 @@ public class MainController implements Initializable {
                 label.setStyle("-fx-text-fill: #F44336;");
             }
         }
+    }
+
+    public void setRedGroupLabel(GroupClient group) {
+        Label selected = groupList.getSelectionModel().getSelectedItem();
+
+        if (selected == null) { //caso nao exista nenhuma selecionada, define uma nova, assim ele considera sempre que nao está selecionada
+            selected = new Label();
+        }
+        /*
+        se eu for o destino da mensagem, ver quem enviou e meter o dele a vermelho
+        
+        se eu nao for o destino, nao meter!
+        
+         */
+        for (Label label : groupList.getItems()) {
+            if (!label.equals(selected) && ((GroupClient) label.getUserData()).equals(group)) {//se a label for a do destino da mensagem
+                label.setStyle("-fx-text-fill: #F44336;");
+            }
+        }
+
     }
 
     private void onGroupListClickEvent(MouseEvent event) {
@@ -413,7 +437,6 @@ public class MainController implements Initializable {
         for (Label item : groupList.getItems()) {
             if (((GroupClient) item.getUserData()).equals(chat)) {
                 groupList.getItems().remove(item);
-                clientUser.getGroups().remove(chat);
                 setDefaultChatPane();
                 displaySnackBar("Group Chat '" + chat.getName() + "' removed!");
                 break;

@@ -1,8 +1,12 @@
 package client;
 
-import java.io.*;
-import java.net.*;
-import utils.Protocol;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class SenderThread extends Thread {
 
@@ -27,32 +31,7 @@ public class SenderThread extends Thread {
 
         try {
             while ((userInput = stdIn.readLine()) != null) {
-                if (userInput.startsWith(Protocol.Client.Private.SEND_FILE)) {
-                    String[] split = userInput.split(" ");
-                    if (split.length == 3) {
-                        String user = split[1];
-                        String filePath = split[2];
-                        File file = new File(filePath);
-                        if (file.exists()) {
-                            int size = (int) file.length();
-                            out.println(Protocol.Client.Private.SEND_FILE + " " + user + " " + file.getName() + " " + size + " " + file.getAbsolutePath());
-                        }
-                    }
-                } else if (userInput.startsWith(Protocol.Client.Group.SEND_FILE)) {
-                    String[] split = userInput.split(" ");
-                    if (split.length == 3) {
-                        String group = split[1];
-                        String filePath = split[2];
-                        File file = new File(filePath);
-                        if (file.exists()) {
-                            int size = (int) file.length();
-                            out.println(Protocol.Client.Group.SEND_FILE + " " + group + " " + file.getName() + " " + size + " " + file.getAbsolutePath());
-                        }
-                    }
-
-                } else {
-                    out.println(userInput);
-                }
+                out.println(userInput);
             }
             out.close();
             in.close();

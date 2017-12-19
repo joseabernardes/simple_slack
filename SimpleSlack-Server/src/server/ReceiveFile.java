@@ -157,9 +157,9 @@ public class ReceiveFile extends Thread {
         obj.put("date", LocalDateTime.now());
         obj.put("filename", fileName);
         obj.put("filesize", size);
-        MessageServer msg = new MessageServer(sender.getId(), sender.getUsername(), LocalDateTime.now(), fileName, receiver.getId(), size);
 
         if (type == ReceiveFile.PRIVATE) {
+            MessageServer msg = new MessageServer(sender.getId(), sender.getUsername(), LocalDateTime.now(), fileName, receiver.getId(), size);
             PrintWriter outReceiver = new PrintWriter(receiver.getSocket().getOutputStream(), true);
             PrintWriter out = new PrintWriter(sender.getSocket().getOutputStream(), true);
             sender.addMessage(receiver, msg);
@@ -167,8 +167,9 @@ public class ReceiveFile extends Thread {
             outReceiver.println(makeJsonResponse(Protocol.Server.Private.FILE_SENDED, msg.toString()));
             out.println(makeJsonResponse(Protocol.Server.Private.FILE_SENDED, msg.toString()));
         } else {
-            byte[] buf = new byte[256];
-            String res = makeJsonResponse(Protocol.Server.Group.RECEIVE_FILE, msg.toString()).toJSONString();
+            MessageServer msg = new MessageServer(sender.getId(), sender.getUsername(), LocalDateTime.now(), fileName, group.getId(), size);
+            byte[] buf = new byte[2048];
+            String res = makeJsonResponse(Protocol.Server.Group.SEND_MSG, msg.toString()).toJSONString();
             buf = res.getBytes();
             DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
             socketUDP.send(packet);

@@ -77,9 +77,9 @@ public class ListMessageController implements Initializable {
      * User id ou Group id
      */
     private int idChat;
+    private int typeOfChat;
     private ObservableList<MessageClient> messagesList;
     private UserClient client_user;
-    private int typeOfChat;
 
     public ListMessageController() {
     }
@@ -105,7 +105,7 @@ public class ListMessageController implements Initializable {
         chatNameLbl.setText(chatName);
         messages.setItems(messagesList);
 //        messages.setItems(sr);
-        messages.setCellFactory(param -> new Cell(out, client_user));
+        messages.setCellFactory(param -> new Cell(out, client_user, typeOfChat, idChat));
 
     }
 
@@ -118,13 +118,19 @@ public class ListMessageController implements Initializable {
         private final Hyperlink link;
         private final HBox messagePane;
         private final Text message;
+        private final Text size;
+        private final Text messageFile;
         private final PrintWriter out;
         private final UserClient client_user;
+        private int idChat;
+        private int typeOfChat;
 
-        public Cell(PrintWriter out, UserClient client_user) {
+        public Cell(PrintWriter out, UserClient client_user, int typeOfChat, int idChat) {
             super();
             this.out = out;
             this.client_user = client_user;
+            this.idChat = idChat;
+            this.typeOfChat = typeOfChat;
             this.getStyleClass().add("list_msg");
 
             try {
@@ -154,9 +160,13 @@ public class ListMessageController implements Initializable {
 //            link.setPadding(Insets.EMPTY);
 
             message = new Text("ola amigos");
+            message.setWrappingWidth(550.0);
+            messageFile = new Text("file");
+            messageFile.setWrappingWidth(550.0);
+            size = new Text("size");
+            size.setWrappingWidth(90.0);
 //            message.setLayoutX(71.0);
 //            message.setLayoutY(49.0);
-            message.setWrappingWidth(550.0);
 
             messagePane = new HBox();
             messagePane.setLayoutX(71.0);
@@ -180,24 +190,24 @@ public class ListMessageController implements Initializable {
 
                 messagePane.getChildren().clear();
                 if (item.isFile()) {
-                    if (item.getId() == client_user.getId()) {//se fui eu que enviei o ficheiro
-                        message.setFont(Font.font("System", FontPosture.ITALIC, 15.0));
-                        message.setText("Send '" + item.getMessage() + "'" + " " + convertBytes(item.getFileSize()));
-                        messagePane.getChildren().add(message);
+                    if (item.getId() == client_user.getId() && typeOfChat == ListMessageController.PRIVATE) {//se fui eu que enviei o ficheiro
+                        messageFile.setFont(Font.font("System", FontPosture.ITALIC, 15.0));
+                        messageFile.setText("Send '" + item.getMessage() + "'" + " " + convertBytes(item.getFileSize()));
+                        messagePane.getChildren().add(messageFile);
 
                     } else {
                         messagePane.getChildren().add(link);
                         HBox.setMargin(link, new Insets(-4.0, 0, -4.0, 0));
 
-                        message.setText(convertBytes(item.getFileSize()));
-                        message.setWrappingWidth(80.0);
+                        size.setText(convertBytes(item.getFileSize()));
+                    
 //                    message.setFont(Font.font(10.0));
                         link.setText(item.getMessage());
                         link.setOnAction((ActionEvent event) -> {
                             downloadFile(item.getMessage());
 
                         });
-                        messagePane.getChildren().add(message);
+                        messagePane.getChildren().add(size);
 //                    HBox.setMargin(message, new Insets(3.0, 0, 0, 0));
 
                     }
@@ -218,31 +228,21 @@ public class ListMessageController implements Initializable {
                 JSONObject obj = new JSONObject();
                 obj.put("file_name", fileName);
                 obj.put("path", selectedDirectory.getAbsolutePath());
-                out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, obj));
+                if (typeOfChat == ListMessageController.PRIVATE) {
+                    out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, obj));
+                } else {//group
+                    obj.put("group", String.valueOf(idChat));
+                    out.println(Protocol.makeJSONResponse(Protocol.Client.Group.RECEIVE_FILE, obj));
+                }
             }
         }
     }
 
-    private void downloadFile(String fileName) {
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setInitialDirectory(new File(System.getProperty("user.home")));
-        File selectedDirectory = chooser.showDialog(null);
-        if (selectedDirectory != null) {
-            System.out.println(selectedDirectory.getAbsolutePath());
-            System.out.println(fileName);
-            JSONObject obj = new JSONObject();
-            obj.put("id", String.valueOf(idChat));
-            obj.put("file_name", file.getName());
-            out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, obj));
-
-        }
-    }
 //    private void downloadFile(String fileName) {
 //        FileChooser fc = new FileChooser();
 //        fc.setInitialDirectory(new File(System.getProperty("user.home")));
 //        File selectedFile = fc.showOpenDialog(null);
 //    }
-
     /**
      * Initializes the controller class.
      */
@@ -289,7 +289,7 @@ public class ListMessageController implements Initializable {
             if (this.typeOfChat == ListMessageController.PRIVATE) {
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Private.SEND_FILE, obj));
             } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Client.Group.SEND_MSG, obj));
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Group.SEND_FILE, obj));
             }
             System.out.println(obj);
             file = null;
@@ -332,7 +332,7 @@ public class ListMessageController implements Initializable {
         JFXButton ok = new JFXButton("Editar");
         ok.setOnAction((ActionEvent event1) -> {
             JSONObject editOBJ = new JSONObject();
-            editOBJ.put("id",idChat);
+            editOBJ.put("id", idChat);
             editOBJ.put("nome", text.getText());
             out.println(Protocol.makeJSONResponse(Protocol.Client.Group.EDIT, editOBJ.toJSONString()));
             dialog.close();
@@ -416,4 +416,10 @@ public class ListMessageController implements Initializable {
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
+    public void updateChatName(int chat_id, String value) {
+        if (this.idChat == chat_id) {
+            chatNameLbl.setText(value);
+        }
+
+    }
 }
