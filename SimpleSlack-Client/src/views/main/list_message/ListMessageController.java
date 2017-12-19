@@ -33,6 +33,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -104,7 +105,7 @@ public class ListMessageController implements Initializable {
         chatNameLbl.setText(chatName);
         messages.setItems(messagesList);
 //        messages.setItems(sr);
-        messages.setCellFactory(param -> new Cell(out));
+        messages.setCellFactory(param -> new Cell(out, client_user));
 
     }
 
@@ -118,10 +119,12 @@ public class ListMessageController implements Initializable {
         private final HBox messagePane;
         private final Text message;
         private final PrintWriter out;
+        private final UserClient client_user;
 
-        public Cell(PrintWriter out) {
+        public Cell(PrintWriter out, UserClient client_user) {
             super();
             this.out = out;
+            this.client_user = client_user;
             this.getStyleClass().add("list_msg");
 
             try {
@@ -157,7 +160,9 @@ public class ListMessageController implements Initializable {
 
             messagePane = new HBox();
             messagePane.setLayoutX(71.0);
-            messagePane.setLayoutY(49.0);
+
+//              messagePane.setLayoutY(49.0);
+            messagePane.setLayoutY(39.0);
             pane = new AnchorPane(avatar, username, time, messagePane);
 
         }
@@ -175,18 +180,28 @@ public class ListMessageController implements Initializable {
 
                 messagePane.getChildren().clear();
                 if (item.isFile()) {
-                    messagePane.getChildren().add(link);
-                    HBox.setMargin(link, new Insets(-4.0, 0, -4.0, 0));
+                    if (item.getId() == client_user.getId()) {//se fui eu que enviei o ficheiro
+                        message.setFont(Font.font("System", FontPosture.ITALIC, 15.0));
+                        message.setText("Send '" + item.getMessage() + "'" + " " + convertBytes(item.getFileSize()));
+                        messagePane.getChildren().add(message);
 
-                    message.setText((item.getFileSize() * 1000000) + "Mb");
+                    } else {
+                        messagePane.getChildren().add(link);
+                        HBox.setMargin(link, new Insets(-4.0, 0, -4.0, 0));
+
+                        message.setText(convertBytes(item.getFileSize()));
+                        message.setWrappingWidth(80.0);
 //                    message.setFont(Font.font(10.0));
-                    link.setText(item.getMessage());
-                    link.setOnAction((ActionEvent event) -> {
-                        downloadFile(item.getMessage());
+                        link.setText(item.getMessage());
+                        link.setOnAction((ActionEvent event) -> {
+                            downloadFile(item.getMessage());
 
-                    });
-                    messagePane.getChildren().add(message);
+                        });
+                        messagePane.getChildren().add(message);
 //                    HBox.setMargin(message, new Insets(3.0, 0, 0, 0));
+
+                    }
+
                 } else {
                     messagePane.getChildren().add(message);
                 }
@@ -381,6 +396,17 @@ public class ListMessageController implements Initializable {
             textField.setDisable(false);
             //            snack.show("Nenhum anexo selecionado", 2000);
         }
+    }
+
+    public static String convertBytes(long bytes) {
+        boolean si = true;
+        int unit = si ? 1000 : 1024;
+        if (bytes < unit) {
+            return bytes + " B";
+        }
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
+        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
 }

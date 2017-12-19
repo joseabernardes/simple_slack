@@ -15,14 +15,19 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import model.MessageClient;
+import views.main.MainController;
 
 public class SendFile extends Thread {
 
     private Socket s;
     private String filePath;
+    private MainController mainController;
 
-    public SendFile(String host, int port, String file) {
+    public SendFile(String host, int port, String file, MainController mainController) {
         this.filePath = file;
+        this.mainController = mainController;
 
         try {
             s = new Socket(host, port);
@@ -36,8 +41,15 @@ public class SendFile extends Thread {
     public void run() {
         try {
             sendFile(filePath);
+            Platform.runLater(() -> {
+                mainController.displaySnackBar("Ficheiro enviando com sucesso");
+            });
+
         } catch (IOException ex) {
             Logger.getLogger(SendFile.class.getName()).log(Level.SEVERE, null, ex);
+            Platform.runLater(() -> {
+                mainController.displaySnackBar("Erro ao enviar o ficheiro");
+            });
         }
     }
 

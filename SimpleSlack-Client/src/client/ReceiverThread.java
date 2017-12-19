@@ -139,7 +139,7 @@ public class ReceiverThread extends Thread {
                         break;
                     case Protocol.Server.Private.SEND_FILE: //servidor confirma que está pronto a receber o ficheiro
                         dataObj = Protocol.parseJSONResponse(dataString);
-                        new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString()).start();
+                        new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString(), mainController).start();
                         break;
                     case Protocol.Server.Private.FILE_SENDED: //avisa que foi enviado um ficheiro e que se encontra pronto a ser descarregado do servidor
                         //TODO
@@ -150,13 +150,25 @@ public class ReceiverThread extends Thread {
                         break;
 
                     case Protocol.Server.Private.FILE_ERROR:
+                        String error;
+                        switch (dataString) {
+                            case Protocol.Server.Private.Error.USER:
+                                error = "Não pode enviar o ficheiro, utilizador não está conectado";
+                                break;
+                            case Protocol.Server.Private.Error.FILE:
+                                error = "O ficheiro não existe ou não tem permições para o descarregar";
+                                break;
+                            default:
+                                error = "Something went wrong, contact the admin";
+
+                        }
                         Platform.runLater(() -> {
-                            mainController.displaySnackBar("Cannot send file, user not logged in");
+                            mainController.displaySnackBar(error);
                         });
                         break;
                     case Protocol.Server.Private.RECEIVE_FILE:
                         dataObj = Protocol.parseJSONResponse(dataString);
-                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), dataObj.get("path").toString()).start();
+                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), dataObj.get("path").toString(), mainController).start();
                         break;
 
                     case Protocol.Server.Private.REMOVE_PRIVATE_CHAT_SUCCESS:
@@ -241,11 +253,11 @@ public class ReceiverThread extends Thread {
 
                     case Protocol.Server.Group.SEND_FILE:
                         dataObj = Protocol.parseJSONResponse(dataString);
-                        new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString()).start();
+                        new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString(), mainController).start();
                         break;
                     case Protocol.Server.Group.RECEIVE_FILE:
                         dataObj = Protocol.parseJSONResponse(dataString);
-                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
+                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home"), mainController).start();
                         break;
 
                     case Protocol.Server.Group.LIST_GROUPS:
@@ -283,8 +295,13 @@ public class ReceiverThread extends Thread {
             }
         } catch (IOException ex) {
             Platform.runLater(() -> {
-                mainController.closeDialog("O servidor parou inesperadamente, volte novamente mais tarde");
+                if (mainController != null) {
+                    mainController.displaySnackBar("O servidor parou inesperadamente, volte novamente mais tarde");
+                } else if (authController != null) {
+                    authController.closeDialog("O servidor parou inesperadamente, volte novamente mais tarde");
+                }
             });
+
             System.out.println("ReceiverThread Fechado");
         }
     }

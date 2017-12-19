@@ -157,7 +157,7 @@ public class ReceiveFile extends Thread {
         obj.put("date", LocalDateTime.now());
         obj.put("filename", fileName);
         obj.put("filesize", size);
-        MessageServer msg = new MessageServer(sender.getId(), sender.getUsername(), LocalDateTime.now(), fileName, receiver.getId(), false, size);
+        MessageServer msg = new MessageServer(sender.getId(), sender.getUsername(), LocalDateTime.now(), fileName, receiver.getId(), size);
 
         if (type == ReceiveFile.PRIVATE) {
             PrintWriter outReceiver = new PrintWriter(receiver.getSocket().getOutputStream(), true);

@@ -53,12 +53,12 @@ public class MessageServer implements Comparable<MessageServer>, Serializable {
      * @param file
      * @param fileSize
      */
-    public MessageServer(int id, String username, LocalDateTime date, String message, int id_destiny, boolean file, int fileSize) {
+    public MessageServer(int id, String username, LocalDateTime date, String message, int id_destiny, int fileSize) {
         this.id = id;
         this.username = username;
         this.date = date;
         this.message = message;
-        this.file = file;
+        this.file = true;
         this.id_destiny = id_destiny;
         this.fileSize = fileSize;
     }

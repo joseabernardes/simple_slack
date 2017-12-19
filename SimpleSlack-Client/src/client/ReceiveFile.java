@@ -10,7 +10,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import javafx.application.Platform;
 import model.UserClient;
+import views.main.MainController;
 
 public class ReceiveFile extends Thread {
 
@@ -19,13 +21,15 @@ public class ReceiveFile extends Thread {
     private int size;
     private UserClient sender;
     private String destinationPath;
+    private MainController mainController;
 
-    public ReceiveFile(String host, int port, String fileName, int size, String destinationPath) {
+    public ReceiveFile(String host, int port, String fileName, int size, String destinationPath, MainController mainController) {
         try {
             socket = new Socket(host, port);
             this.fileName = fileName;
             this.size = size;
             this.destinationPath = destinationPath;
+            this.mainController = mainController;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,8 +39,13 @@ public class ReceiveFile extends Thread {
     public void run() {
         try {
             saveFile();
+            Platform.runLater(() -> {
+                mainController.displaySnackBar("Ficheiro '" + fileName + "' recebido com sucesso");
+            });
         } catch (IOException e) {
-            e.printStackTrace();
+            Platform.runLater(() -> {
+                mainController.displaySnackBar("Falha ao receber o ficheiro '" + fileName + "'");
+            });
         }
     }
 
@@ -83,6 +92,5 @@ public class ReceiveFile extends Thread {
         System.out.println("FILE RECEIVED");
 
     }
-
 
 }

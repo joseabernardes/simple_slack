@@ -52,7 +52,7 @@ public class SendFile extends Thread {
 
         fis.close();
         dos.close();
-        System.out.println("Ficheiro enviado");
+        System.out.println("Ficheiro '" + filePath + "' enviado");
     }
 
 }

@@ -101,9 +101,9 @@ public class MultiClientThread extends Thread {
 
                         sendGroupFile(inputLine);
 
-                    } else if (inputLine.startsWith(Protocol.Client.Private.RECEIVE_FILE)) {
+                    } else if (command.equals(Protocol.Client.Private.RECEIVE_FILE)) {
 
-                        receivePrivateFile(inputLine);
+                        receivePrivateFile(data);
 
                     } else if (inputLine.startsWith(Protocol.Client.Group.RECEIVE_FILE)) {
 
@@ -287,30 +287,26 @@ public class MultiClientThread extends Thread {
     path
      */
     private void sendPrivateFile(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 5) {
-            UserServer receiver = null;
-            synchronized (users) {
-                for (UserServer user : users) {
-                    if (user.getId() == Integer.valueOf(input[1])) {
-                        receiver = user;
-                        break;
-                    }
+        JSONObject data = Protocol.parseJSONResponse(dataString);
+        UserServer receiver = null;
+        synchronized (users) {
+            for (UserServer user : users) {
+                if (user.getId() == Integer.valueOf(data.get("id").toString())) {
+                    receiver = user;
+                    break;
                 }
             }
-            if (receiver != null && receiver.getSocket() != null) { //USER EXIST E TEM LOGIN
-                int port = GetPort.getFreeAvaliablePort(groups);
-                new ReceiveFile(port, input[2], Integer.parseInt(input[3]), receiver, loggedUser).start();
-                JSONObject object = new JSONObject();
-                object.put("port", port);
-                object.put("address", socket.getInetAddress().getHostAddress());
-                object.put("path", input[4]);
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Private.SEND_FILE, object.toJSONString()));
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Private.SEND_ERROR, Protocol.Server.Private.Error.USER));
-            }
+        }
+        if (receiver != null && receiver.getSocket() != null) { //USER EXIST E TEM LOGIN
+            int port = GetPort.getFreeAvaliablePort(groups);
+            new ReceiveFile(port, data.get("file_name").toString(), Integer.parseInt(data.get("size").toString()), receiver, loggedUser).start();
+            JSONObject object = new JSONObject();
+            object.put("port", port);
+            object.put("address", socket.getInetAddress().getHostAddress());
+            object.put("path", data.get("path").toString());
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Private.SEND_FILE, object.toJSONString()));
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Private.SEND_ERROR, Protocol.Server.Private.Error.USER));
         }
 
     }
@@ -320,25 +316,22 @@ public class MultiClientThread extends Thread {
     path
      */
     private void receivePrivateFile(String dataString) {
-        String[] input = dataString.split(" ");
-        if (input.length == 3) {
-            int port = GetPort.getFreeAvaliablePort(groups);
-            String path = "files/private/" + loggedUser.getUsername() + "/" + input[1];
-            File file = new File(path);
-            if (file.exists()) {
-                new SendFile(port, path).start();
-                JSONObject object = new JSONObject();
-                object.put("port", port);
-                object.put("address", socket.getInetAddress().getHostAddress());
-                object.put("name", input[1]);
-                object.put("size", file.length());
-                object.put("path", input[2]);
-                out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, object.toJSONString()));
-            } else {
-                out.println(Protocol.makeJSONResponse(Protocol.Server.Private.FILE_ERROR, Protocol.Server.Private.Error.FILE));
-            }
+        JSONObject data = Protocol.parseJSONResponse(dataString);
+
+        int port = GetPort.getFreeAvaliablePort(groups);
+        String path = "files/private/" + loggedUser.getUsername() + "/" + data.get("file_name").toString();
+        File file = new File(path);
+        if (file.exists()) {
+            new SendFile(port, path).start();
+            JSONObject object = new JSONObject();
+            object.put("port", port);
+            object.put("address", socket.getInetAddress().getHostAddress());
+            object.put("name", data.get("file_name").toString());
+            object.put("size", file.length());
+            object.put("path", data.get("path").toString());
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, object.toJSONString()));
         } else {
-            badCommand();
+            out.println(Protocol.makeJSONResponse(Protocol.Server.Private.FILE_ERROR, Protocol.Server.Private.Error.FILE));
         }
     }
 

@@ -47,14 +47,16 @@ public class MessageClient implements Comparable<MessageClient> {
      * @param username
      * @param date
      * @param message
+     * @param id_destiny
      * @param file
+     * @param fileSize
      */
-    public MessageClient(int id, String username, LocalDateTime date, String message, int id_destiny, boolean file, int fileSize) {
+    public MessageClient(int id, String username, LocalDateTime date, String message, int id_destiny, int fileSize) {
         this.id = id;
         this.username = username;
         this.date = date;
         this.message = message;
-        this.file = file;
+        this.file = true;
         this.id_destiny = id_destiny;
         this.fileSize = fileSize;
     }
@@ -110,7 +112,7 @@ public class MessageClient implements Comparable<MessageClient> {
         if (!file) {
             return new MessageClient(Integer.valueOf(obj.get("id").toString()), obj.get("username").toString(), LocalDateTime.parse(obj.get("date").toString()), obj.get("message").toString(), Integer.valueOf(obj.get("id_destiny").toString()));
         } else {
-            return new MessageClient(Integer.valueOf(obj.get("id").toString()), obj.get("username").toString(), LocalDateTime.parse(obj.get("date").toString()), obj.get("message").toString(), Integer.valueOf(obj.get("id_destiny").toString()), file, Integer.valueOf(obj.get("file_size").toString()));
+            return new MessageClient(Integer.valueOf(obj.get("id").toString()), obj.get("username").toString(), LocalDateTime.parse(obj.get("date").toString()), obj.get("message").toString(), Integer.valueOf(obj.get("id_destiny").toString()), Integer.valueOf(obj.get("file_size").toString()));
         }
     }
 }
