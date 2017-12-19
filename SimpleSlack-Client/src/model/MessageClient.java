@@ -20,6 +20,7 @@ public class MessageClient implements Comparable<MessageClient> {
     private final String message;
     private final boolean file;
     private final int id_destiny;
+    private final int fileSize;
 
     /**
      * CONSTRUTOR PARA MENSAGEM DE TEXTO
@@ -35,6 +36,7 @@ public class MessageClient implements Comparable<MessageClient> {
         this.date = date;
         this.message = message;
         file = false;
+        this.fileSize = -1;
         this.id_destiny = id_destiny;
     }
 
@@ -47,13 +49,14 @@ public class MessageClient implements Comparable<MessageClient> {
      * @param message
      * @param file
      */
-    public MessageClient(int id, String username, LocalDateTime date, String message, int id_destiny, boolean file) {
+    public MessageClient(int id, String username, LocalDateTime date, String message, int id_destiny, boolean file, int fileSize) {
         this.id = id;
         this.username = username;
         this.date = date;
         this.message = message;
         this.file = file;
         this.id_destiny = id_destiny;
+        this.fileSize = fileSize;
     }
 
     public int getId_destiny() {
@@ -85,6 +88,10 @@ public class MessageClient implements Comparable<MessageClient> {
         return this.date.compareTo(o.date);
     }
 
+    public int getFileSize() {
+        return fileSize;
+    }
+
     @Override
     public String toString() {
         JSONObject obj = new JSONObject();
@@ -94,10 +101,16 @@ public class MessageClient implements Comparable<MessageClient> {
         obj.put("message", message);
         obj.put("id_destiny", String.valueOf(id_destiny));
         obj.put("file", String.valueOf(file));
+        obj.put("file_size", String.valueOf(fileSize));
         return obj.toJSONString();
     }
 
     public static MessageClient newMessage(JSONObject obj) {
-        return new MessageClient(Integer.valueOf(obj.get("id").toString()), obj.get("username").toString(), LocalDateTime.parse(obj.get("date").toString()), obj.get("message").toString(),Integer.valueOf(obj.get("id_destiny").toString()),Boolean.valueOf(obj.get("file").toString()));
+        boolean file = Boolean.valueOf(obj.get("file").toString());
+        if (!file) {
+            return new MessageClient(Integer.valueOf(obj.get("id").toString()), obj.get("username").toString(), LocalDateTime.parse(obj.get("date").toString()), obj.get("message").toString(), Integer.valueOf(obj.get("id_destiny").toString()));
+        } else {
+            return new MessageClient(Integer.valueOf(obj.get("id").toString()), obj.get("username").toString(), LocalDateTime.parse(obj.get("date").toString()), obj.get("message").toString(), Integer.valueOf(obj.get("id_destiny").toString()), file, Integer.valueOf(obj.get("file_size").toString()));
+        }
     }
 }

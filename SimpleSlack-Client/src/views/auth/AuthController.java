@@ -5,7 +5,10 @@
  */
 package views.auth;
 
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDecorator;
+import com.jfoenix.controls.JFXDialog;
+import com.jfoenix.controls.JFXDialogLayout;
 import com.jfoenix.controls.JFXPasswordField;
 import com.jfoenix.controls.JFXTabPane;
 import com.jfoenix.controls.JFXTextField;
@@ -14,6 +17,7 @@ import java.io.PipedOutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,6 +25,8 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.json.simple.JSONObject;
@@ -57,6 +63,8 @@ public class AuthController implements Initializable {
     private JFXDecorator decorator;
 
     private Stage stage;
+    @FXML
+    private StackPane main;
 
     @FXML
     private void loginAction(ActionEvent event) {
@@ -84,6 +92,7 @@ public class AuthController implements Initializable {
         controller.setController(id, username, out);
         decorator.setContent(root);
         decorator.setStyle("-fx-decorator-color:  #3c2539");
+
         stage.setWidth(1000);
         stage.setHeight(640);
 
@@ -125,6 +134,20 @@ public class AuthController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+    }
+
+    public void closeDialog(String message) {
+        JFXDialogLayout content = new JFXDialogLayout();
+        JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
+        content.setHeading(new Text("SERVIDOR DESCONECTADO"));
+        content.setBody(new Text(message));
+        JFXButton ok = new JFXButton("Fechar");
+        ok.setOnAction((ActionEvent event1) -> {
+            Platform.exit();
+            dialog.close();
+        });
+        content.setActions(ok);
+        dialog.show();
     }
 
 }

@@ -16,8 +16,6 @@ import model.PrivateChatServer;
 import model.UserServer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import server.files.WriteGroups;
-import server.files.WriteUsers;
 import utils.GetPort;
 import utils.Protocol;
 
@@ -91,9 +89,9 @@ public class MultiClientThread extends Thread {
 
                         listLoggedUsers();
 
-                    } else if (inputLine.startsWith(Protocol.Client.Private.SEND_FILE)) {
+                    } else if (command.equals(Protocol.Client.Private.SEND_FILE)) {
 
-                        sendPrivateFile(inputLine);
+                        sendPrivateFile(data);
 
                     } else if (command.equals(Protocol.Client.Private.REMOVE_PRIVATE_CHAT)) {
 
@@ -174,7 +172,6 @@ public class MultiClientThread extends Thread {
                 socket.close();
                 out.close();
                 in.close();
-                new WriteUsers(userSemaphore, users).start();
                 System.out.println("Utilizador " + loggedUser.getUsername() + " desligou-se!");
 
             } else {
@@ -186,7 +183,6 @@ public class MultiClientThread extends Thread {
                 loggedUser.setSocket(null);
                 System.out.println("Utilizador " + loggedUser.getUsername() + " fez logout");
                 System.out.println("Utilizador " + loggedUser.getUsername() + " desligou-se!");
-                new WriteUsers(userSemaphore, users).start();
             } else {
                 System.out.println("Utilizador saiu sem fazer login");
             }
@@ -237,7 +233,6 @@ public class MultiClientThread extends Thread {
                 if (!exists) {
                     if (data.get("password1").toString().equals(data.get("password2").toString())) {
                         users.add(new UserServer(data.get("username").toString(), data.get("password1").toString()));
-                        new WriteUsers(userSemaphore, users).start();
                         out.println(Protocol.makeJSONResponse(Protocol.Server.Auth.REGIST_SUCCESS, data.get("username").toString()));
                     } else {
                         out.println(Protocol.makeJSONResponse(Protocol.Server.Auth.REGIST_ERROR, Protocol.Server.Auth.Error.PASS_MATCH));
@@ -272,7 +267,7 @@ public class MultiClientThread extends Thread {
             }
             if (receiver != null && receiver.getSocket() != null) { //se user existe e se tem socket(se tem login)
                 PrintWriter outReceiver = new PrintWriter(receiver.getSocket().getOutputStream(), true);
-                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString(), Integer.valueOf(data.get("id").toString()), false);
+                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString(), Integer.valueOf(data.get("id").toString()));
                 outReceiver.println(Protocol.makeJSONResponse(Protocol.Server.Private.RECEIVE_MSG, msg.toString()));
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Private.RECEIVE_MSG, msg.toString()));
                 receiver.addMessage(loggedUser, msg);
@@ -285,6 +280,12 @@ public class MultiClientThread extends Thread {
         }
     }
 
+    /*
+    id
+    file_name
+    size
+    path
+     */
     private void sendPrivateFile(String dataString) {
         String[] input = dataString.split(" ");
         if (input.length == 5) {
@@ -314,9 +315,13 @@ public class MultiClientThread extends Thread {
 
     }
 
+    /*
+    file_name
+    path
+     */
     private void receivePrivateFile(String dataString) {
         String[] input = dataString.split(" ");
-        if (input.length == 2) {
+        if (input.length == 3) {
             int port = GetPort.getFreeAvaliablePort(groups);
             String path = "files/private/" + loggedUser.getUsername() + "/" + input[1];
             File file = new File(path);
@@ -327,6 +332,7 @@ public class MultiClientThread extends Thread {
                 object.put("address", socket.getInetAddress().getHostAddress());
                 object.put("name", input[1]);
                 object.put("size", file.length());
+                object.put("path", input[2]);
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, object.toJSONString()));
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Server.Private.FILE_ERROR, Protocol.Server.Private.Error.FILE));
@@ -415,7 +421,7 @@ public class MultiClientThread extends Thread {
             }
             if (group != null) { //se grupo existe
                 byte[] buf = new byte[256];
-                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString(), Integer.valueOf(data.get("id").toString()), false);
+                MessageServer msg = new MessageServer(loggedUser.getId(), loggedUser.getUsername(), LocalDateTime.now(), data.get("msg").toString(), Integer.valueOf(data.get("id").toString()));
                 String res = Protocol.makeJSONResponse(Protocol.Server.Group.SEND_MSG, msg.toString());
                 buf = res.getBytes();
                 DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());

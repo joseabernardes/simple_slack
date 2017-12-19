@@ -19,42 +19,24 @@ public class GroupClient implements Serializable {
 
     private int id;
     private int port;
-    private int serverPort;
     private String name;
     private String address;
     private ObservableList<MessageClient> messages;
-    private final List<UserClient> users;
 
     public GroupClient(int port, String name, String address) {
         this.id = ++ID;
         this.port = port;
         this.name = name;
         this.address = address;
-        serverPort = -1;
         this.messages = FXCollections.observableArrayList(new ArrayList<MessageClient>());
-        this.users = Collections.synchronizedList(new ArrayList<UserClient>());
     }
 
-    public List<UserClient> getUsers() {
-        return users;
-    }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    public boolean addUser(UserClient user) {
-        return this.users.add(user);
-    }
 
-    public boolean hasUsers() {
-        return !this.users.isEmpty();
-
-    }
-
-    public boolean removeUser(UserClient user) {
-        return this.users.remove(user);
-    }
 
     public String getAddress() {
         return address;
@@ -68,13 +50,7 @@ public class GroupClient implements Serializable {
         return port;
     }
 
-    public int getServerPort() {
-        return serverPort;
-    }
 
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
-    }
 
     public boolean addMessage(MessageClient message) {
         return messages.add(message);

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import model.Database;
@@ -54,7 +55,7 @@ public class WriteDatabase extends Thread {
                 ObjectOutputStream output;
                 output = new ObjectOutputStream(new FileOutputStream(ficheiro));
                 output.writeObject((Database) database);
-                System.out.println("Database gravada");
+                System.out.println("Database gravada @" + LocalDateTime.now() );
             } catch (IOException | InterruptedException ex) {
                 System.out.println("Erro a gravar database");
             } finally {

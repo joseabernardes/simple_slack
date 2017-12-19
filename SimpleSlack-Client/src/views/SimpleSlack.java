@@ -40,6 +40,12 @@ public class SimpleSlack extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+
+        //----ENDEREÇO DO SERVIDOR--------
+        int port = 7777;
+        String host = "127.0.0.1";
+        //--------------------------------
+        stage.setTitle("Simple Slack");
         stage.setTitle("Simple Slack");
         stage.getIcons().add(new Image("/views/images/Slack_Square.png"));
         FXMLLoader loader = new FXMLLoader(getClass().getResource("auth/Auth.fxml"));
@@ -54,23 +60,22 @@ public class SimpleSlack extends Application {
         pipedSenderOutput = new PipedOutputStream();
         pipedSenderInput = new PipedInputStream(pipedSenderOutput);
         controller.setController(pipedSenderOutput, decorator, stage);
-        int port = 7777;
-        String host = "127.0.0.1";
+        Scene scene = new Scene(decorator, 500, 600);
+        String uri = getClass().getResource("main/main.css").toExternalForm();
+        scene.getStylesheets().add(uri);
+        stage.setResizable(false);
+        stage.setScene(scene);
+        stage.show();
 
         try {
             clientSocket = new Socket(host, port);
             new ReceiverThread(clientSocket.getInputStream(), controller).start();
             new SenderThread(clientSocket, pipedSenderInput).start();
-            Scene scene = new Scene(decorator, 500, 600);
-            String uri = getClass().getResource("main/main.css").toExternalForm();
-            scene.getStylesheets().add(uri);
-            stage.setResizable(false);
-            stage.setScene(scene);
-            stage.show();
-
         } catch (IOException e) {
-
             System.err.println("Don't know about host:" + host + " .");
+            controller.closeDialog("O servidor não está ligado");
+       
+
         }
 
     }

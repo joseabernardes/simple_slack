@@ -53,6 +53,8 @@ public class MulticastThread extends Thread {
                     if (response.get("command").equals(Protocol.Server.Group.LEAVE_SUCCESS)) {
                         if (response.get("data").equals(username)) {
                             Platform.runLater(() -> {
+                                System.out.println(mainController);
+                                System.out.println(group);
                                 mainController.leaveSuccess(group);
                             });
                             receive = false;

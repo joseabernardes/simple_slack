@@ -21,6 +21,7 @@ public class MessageServer implements Comparable<MessageServer>, Serializable {
     private final String message;
     private final boolean file;
     private final int id_destiny;
+    private final int fileSize;
 
     /**
      * CONSTRUTOR PARA MENSAGEM DE TEXTO
@@ -36,7 +37,8 @@ public class MessageServer implements Comparable<MessageServer>, Serializable {
         this.username = username;
         this.date = date;
         this.message = message;
-        file = false;
+        this.file = false;
+        this.fileSize = -1;
         this.id_destiny = id_destiny;
     }
 
@@ -49,14 +51,16 @@ public class MessageServer implements Comparable<MessageServer>, Serializable {
      * @param message
      * @param id_destiny
      * @param file
+     * @param fileSize
      */
-    public MessageServer(int id, String username, LocalDateTime date, String message, int id_destiny, boolean file) {
+    public MessageServer(int id, String username, LocalDateTime date, String message, int id_destiny, boolean file, int fileSize) {
         this.id = id;
         this.username = username;
         this.date = date;
         this.message = message;
         this.file = file;
         this.id_destiny = id_destiny;
+        this.fileSize = fileSize;
     }
 
     public int getId_destiny() {
@@ -84,6 +88,10 @@ public class MessageServer implements Comparable<MessageServer>, Serializable {
         return this.date.compareTo(o.date);
     }
 
+    public int getFileSize() {
+        return fileSize;
+    }
+
     @Override
     public String toString() {
         JSONObject obj = new JSONObject();
@@ -93,6 +101,8 @@ public class MessageServer implements Comparable<MessageServer>, Serializable {
         obj.put("message", message);
         obj.put("id_destiny", String.valueOf(id_destiny));
         obj.put("file", String.valueOf(file));
+        obj.put("file_size", String.valueOf(fileSize));
+
         return obj.toJSONString();
     }
 

@@ -49,9 +49,19 @@ public class ReceiverThread extends Thread {
                 JSONObject dataObj;
                 JSONArray dataArray;
                 switch (command) {
+                    case Protocol.ERROR:
+                        Platform.runLater(() -> {
+                            if (mainController != null) {
+                                mainController.displaySnackBar("Something went wrong, contact the admin");
+                            } else if (authController != null) {
+                                authController.closeDialog("Something went wrong, contact the admin");
+                            }
+                        });
+                        break;
                     /**
                      * AUTH
                      */
+
                     case Protocol.Server.Auth.LOGIN_SUCCESS:
                         dataObj = Protocol.parseJSONResponse(dataString);
                         username = dataObj.get("name").toString();
@@ -60,6 +70,7 @@ public class ReceiverThread extends Thread {
                         Platform.runLater(() -> {
                             try {
                                 mainController = authController.loginSuccess(id, username);
+                                mainController.initData();
                             } catch (IOException ex) {
                                 Logger.getLogger(ReceiverThread.class.getName()).log(Level.SEVERE, null, ex); //error
                             }
@@ -126,16 +137,26 @@ public class ReceiverThread extends Thread {
                             mainController.addMessageToPrivateChat(MessageClient.newMessage(dataObj));
                         });
                         break;
-                    case Protocol.Server.Private.SEND_FILE:
+                    case Protocol.Server.Private.SEND_FILE: //servidor confirma que está pronto a receber o ficheiro
                         dataObj = Protocol.parseJSONResponse(dataString);
                         new SendFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("path").toString()).start();
                         break;
-                    case Protocol.Server.Private.FILE_SENDED:
+                    case Protocol.Server.Private.FILE_SENDED: //avisa que foi enviado um ficheiro e que se encontra pronto a ser descarregado do servidor
                         //TODO
+                        dataObj = Protocol.parseJSONResponse(dataString);
+                        Platform.runLater(() -> {
+                            mainController.addMessageToPrivateChat(MessageClient.newMessage(dataObj));
+                        });
+                        break;
+
+                    case Protocol.Server.Private.FILE_ERROR:
+                        Platform.runLater(() -> {
+                            mainController.displaySnackBar("Cannot send file, user not logged in");
+                        });
                         break;
                     case Protocol.Server.Private.RECEIVE_FILE:
                         dataObj = Protocol.parseJSONResponse(dataString);
-                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), System.getProperty("user.home")).start();
+                        new ReceiveFile(dataObj.get("address").toString(), Integer.valueOf(dataObj.get("port").toString()), dataObj.get("name").toString(), Integer.valueOf(dataObj.get("size").toString()), dataObj.get("path").toString()).start();
                         break;
 
                     case Protocol.Server.Private.REMOVE_PRIVATE_CHAT_SUCCESS:
@@ -209,7 +230,7 @@ public class ReceiverThread extends Thread {
                             JSONObject ob = Protocol.parseJSONResponse(object.toString());
                             GroupClient group2 = GroupClient.newGroup(ob);
                             groups.add(group2);
-
+                            System.out.println(mainController);
                             new MulticastThread(group2.getAddress(), group2.getPort(), username, group2, mainController).start();
 
                         }
@@ -261,6 +282,9 @@ public class ReceiverThread extends Thread {
                 System.out.println(response);
             }
         } catch (IOException ex) {
+            Platform.runLater(() -> {
+                mainController.closeDialog("O servidor parou inesperadamente, volte novamente mais tarde");
+            });
             System.out.println("ReceiverThread Fechado");
         }
     }

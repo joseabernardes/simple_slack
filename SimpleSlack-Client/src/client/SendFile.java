@@ -19,13 +19,9 @@ import java.util.logging.Logger;
 public class SendFile extends Thread {
 
     private Socket s;
-    private String host;
-    private int port;
     private String filePath;
 
     public SendFile(String host, int port, String file) {
-        this.host = host;
-        this.port = port;
         this.filePath = file;
 
         try {

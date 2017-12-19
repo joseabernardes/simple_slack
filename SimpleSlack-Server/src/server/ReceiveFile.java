@@ -17,6 +17,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import model.GroupServer;
+import model.MessageServer;
 import model.UserServer;
 import org.json.simple.JSONObject;
 import utils.Protocol;
@@ -156,19 +157,22 @@ public class ReceiveFile extends Thread {
         obj.put("date", LocalDateTime.now());
         obj.put("filename", fileName);
         obj.put("filesize", size);
+        MessageServer msg = new MessageServer(sender.getId(), sender.getUsername(), LocalDateTime.now(), fileName, receiver.getId(), false, size);
+
         if (type == ReceiveFile.PRIVATE) {
             PrintWriter outReceiver = new PrintWriter(receiver.getSocket().getOutputStream(), true);
-
-            outReceiver.println(makeJsonResponse(Protocol.Server.Private.FILE_SENDED, obj.toJSONString()));
-
+            PrintWriter out = new PrintWriter(sender.getSocket().getOutputStream(), true);
+            sender.addMessage(receiver, msg);
+            receiver.addMessage(sender, msg);
+            outReceiver.println(makeJsonResponse(Protocol.Server.Private.FILE_SENDED, msg.toString()));
+            out.println(makeJsonResponse(Protocol.Server.Private.FILE_SENDED, msg.toString()));
         } else {
             byte[] buf = new byte[256];
-            String res = makeJsonResponse(Protocol.Server.Group.RECEIVE_FILE, obj.toJSONString()).toJSONString();
+            String res = makeJsonResponse(Protocol.Server.Group.RECEIVE_FILE, msg.toString()).toJSONString();
             buf = res.getBytes();
             DatagramPacket packet = new DatagramPacket(buf, buf.length, InetAddress.getByName(group.getAddress()), group.getPort());
             socketUDP.send(packet);
-//            group.addMessage(msg);
-
+            group.addMessage(msg);
         }
 
     }

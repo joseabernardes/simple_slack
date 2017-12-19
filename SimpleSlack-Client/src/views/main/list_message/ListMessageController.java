@@ -66,7 +66,7 @@ public class ListMessageController implements Initializable {
 
     private StackPane main;
 
-    private JSONObject file;
+    private File file;
     @FXML
     private ImageView file_icon;
 
@@ -104,7 +104,7 @@ public class ListMessageController implements Initializable {
         chatNameLbl.setText(chatName);
         messages.setItems(messagesList);
 //        messages.setItems(sr);
-        messages.setCellFactory(param -> new Cell());
+        messages.setCellFactory(param -> new Cell(out));
 
     }
 
@@ -117,9 +117,11 @@ public class ListMessageController implements Initializable {
         private final Hyperlink link;
         private final HBox messagePane;
         private final Text message;
+        private final PrintWriter out;
 
-        public Cell() {
+        public Cell(PrintWriter out) {
             super();
+            this.out = out;
             this.getStyleClass().add("list_msg");
 
             try {
@@ -176,11 +178,11 @@ public class ListMessageController implements Initializable {
                     messagePane.getChildren().add(link);
                     HBox.setMargin(link, new Insets(-4.0, 0, -4.0, 0));
 
-                    message.setText("142Mb");
+                    message.setText((item.getFileSize() * 1000000) + "Mb");
 //                    message.setFont(Font.font(10.0));
-                    link.setText("files_sender.xml");
+                    link.setText(item.getMessage());
                     link.setOnAction((ActionEvent event) -> {
-                        downloadFile("files_sender.xml");
+                        downloadFile(item.getMessage());
 
                     });
                     messagePane.getChildren().add(message);
@@ -198,18 +200,33 @@ public class ListMessageController implements Initializable {
             if (selectedDirectory != null) {
                 System.out.println(selectedDirectory.getAbsolutePath());
                 System.out.println(fileName);
-            } else {
-                System.out.println("null");
-                System.out.println(fileName);
+                JSONObject obj = new JSONObject();
+                obj.put("file_name", fileName);
+                obj.put("path", selectedDirectory.getAbsolutePath());
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, obj));
             }
         }
     }
 
     private void downloadFile(String fileName) {
-        FileChooser fc = new FileChooser();
-        fc.setInitialDirectory(new File(System.getProperty("user.home")));
-        File selectedFile = fc.showOpenDialog(null);
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+        File selectedDirectory = chooser.showDialog(null);
+        if (selectedDirectory != null) {
+            System.out.println(selectedDirectory.getAbsolutePath());
+            System.out.println(fileName);
+            JSONObject obj = new JSONObject();
+            obj.put("id", String.valueOf(idChat));
+            obj.put("file_name", file.getName());
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Private.RECEIVE_FILE, obj));
+
+        }
     }
+//    private void downloadFile(String fileName) {
+//        FileChooser fc = new FileChooser();
+//        fc.setInitialDirectory(new File(System.getProperty("user.home")));
+//        File selectedFile = fc.showOpenDialog(null);
+//    }
 
     /**
      * Initializes the controller class.
@@ -238,23 +255,34 @@ public class ListMessageController implements Initializable {
     }
 
     private void sendMessage() {
-        if (file != null) {
-
-        } else {
+        if (file == null) {
             String text = textField.getText();
             JSONObject obj = new JSONObject();
             obj.put("id", idChat);
             obj.put("msg", text);
             if (this.typeOfChat == ListMessageController.PRIVATE) {
-//                messagesList.add(new MessageClient(client_user.getId(), client_user.getUsername(), LocalDateTime.now(), text)); ERRADO
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Private.SEND_MSG, obj));
             } else {
                 out.println(Protocol.makeJSONResponse(Protocol.Client.Group.SEND_MSG, obj));
             }
-            System.out.println("SEND: " + text + "TO: " + chatNameLbl.getText());
-            textField.setText("");
-            textField.setDisable(false);
+        } else {
+            JSONObject obj = new JSONObject();
+            obj.put("id", String.valueOf(idChat));
+            obj.put("file_name", file.getName());
+            obj.put("size", String.valueOf(file.length()));
+            obj.put("path", file.getAbsolutePath());
+            if (this.typeOfChat == ListMessageController.PRIVATE) {
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Private.SEND_FILE, obj));
+            } else {
+                out.println(Protocol.makeJSONResponse(Protocol.Client.Group.SEND_MSG, obj));
+            }
+            System.out.println(obj);
+            file = null;
+            file_icon.getStyleClass().clear();
+            file_icon.getStyleClass().add("file_empty");
         }
+        textField.setText("");
+        textField.setDisable(false);
     }
 
     @FXML
@@ -267,7 +295,7 @@ public class ListMessageController implements Initializable {
         ok.setOnAction((ActionEvent event1) -> {
             out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LEAVE, String.valueOf(idChat)));
             System.out.println("Try to leave group " + chatNameLbl.getText());
-             dialog.close();
+            dialog.close();
         });
         JFXButton cancel = new JFXButton("Não");
         cancel.setOnAction((ActionEvent event1) -> {
@@ -339,29 +367,20 @@ public class ListMessageController implements Initializable {
         file_icon.getStyleClass().clear();
 //        JFXSnackbar snack = new JFXSnackbar(main);
         if (selectedFile != null) {
-            file = makeJson(selectedFile.getAbsolutePath(), selectedFile.getName(), selectedFile.length());
-            System.out.println(file);
+            file = selectedFile;
             file_icon.getStyleClass().add("file_not_empty");
 
 //            snack.show("Ficheiro \"" + selectedFile.getName() + "\" anexado á mensagem", 3000);
             textField.setText("Send file \"" + selectedFile.getName() + "\"");
             textField.setDisable(true);
         } else {
-            System.out.println("null");
             file = null;
             file_icon.getStyleClass().add("file_empty");
 
-//            snack.show("Nenhum anexo selecionado", 2000);
             textField.setText("");
             textField.setDisable(false);
+            //            snack.show("Nenhum anexo selecionado", 2000);
         }
     }
 
-    private JSONObject makeJson(String filePath, String fileName, long lengh) {
-        JSONObject obj = new JSONObject();
-        obj.put("path", filePath);
-        obj.put("name", fileName);
-        obj.put("lengh", lengh);
-        return obj;
-    }
 }

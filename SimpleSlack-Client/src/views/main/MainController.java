@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -401,8 +402,27 @@ public class MainController implements Initializable {
         logged_user.setText(username);
         clientUser = new UserClient(id, username);
         this.out = out;
+
+    }
+
+    public void initData() {
         //INITIALIZE DATA
         out.println(Protocol.makeJSONResponse(Protocol.Client.Group.LIST_JOINED_GROUPS, ""));
         out.println(Protocol.makeJSONResponse(Protocol.Client.Private.LIST_PRIVATE_CHAT, ""));
+    }
+
+    public void closeDialog(String message) {
+        JFXDialogLayout content = new JFXDialogLayout();
+        JFXDialog dialog = new JFXDialog(main, content, JFXDialog.DialogTransition.CENTER);
+        content.setHeading(new Text("SERVIDOR DESCONECTADO"));
+        content.setBody(new Text(message));
+        JFXButton ok = new JFXButton("Fechar");
+        ok.setOnAction((ActionEvent event1) -> {
+            Platform.exit();
+            dialog.close();
+
+        });
+        content.setActions(ok);
+        dialog.show();
     }
 }

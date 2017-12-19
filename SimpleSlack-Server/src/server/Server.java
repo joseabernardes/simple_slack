@@ -23,7 +23,6 @@ import model.GroupServer;
 import model.PrivateChatServer;
 import model.UserServer;
 import server.files.WriteDatabase;
-import server.files.WriteGroups;
 import utils.GetPort;
 
 /**

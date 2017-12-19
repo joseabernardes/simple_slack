@@ -8,13 +8,9 @@ package client;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilePermission;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.Socket;
-import java.time.LocalDateTime;
 import model.UserClient;
-import org.json.simple.JSONObject;
 
 public class ReceiveFile extends Thread {
 
@@ -88,11 +84,5 @@ public class ReceiveFile extends Thread {
 
     }
 
-    private JSONObject makeJsonResponse(String command, String data) {
-        JSONObject object = new JSONObject();
-        object.put("command", command);
-        object.put("data", data);
-        return object;
-    }
 
 }
