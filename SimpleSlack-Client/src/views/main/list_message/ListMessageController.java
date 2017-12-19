@@ -330,6 +330,13 @@ public class ListMessageController implements Initializable {
         text.setPromptText("Novo nome");
         content.setBody(text);
         JFXButton ok = new JFXButton("Editar");
+        ok.setOnAction((ActionEvent event1) -> {
+            JSONObject editOBJ = new JSONObject();
+            editOBJ.put("id",idChat);
+            editOBJ.put("nome", text.getText());
+            out.println(Protocol.makeJSONResponse(Protocol.Client.Group.EDIT, editOBJ.toJSONString()));
+            dialog.close();
+        });
         JFXButton cancel = new JFXButton("Voltar");
         cancel.setOnAction((ActionEvent event1) -> {
             dialog.close();

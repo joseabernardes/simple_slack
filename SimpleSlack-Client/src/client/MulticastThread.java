@@ -72,6 +72,11 @@ public class MulticastThread extends Thread {
                             group.addMessage(MessageClient.newMessage(Protocol.parseJSONResponse(x)));
                         });
 
+                    } else if (response.get("command").equals(Protocol.Server.Group.EDIT_SUCCESS)) {
+                        JSONObject dataObj = Protocol.parseJSONResponse(response.get("data").toString());
+                        Platform.runLater(() -> {
+                            mainController.updateGroupName(Integer.valueOf(dataObj.get("id").toString()), dataObj.get("name").toString());
+                        });
                     }
                     System.out.println(received);
 
